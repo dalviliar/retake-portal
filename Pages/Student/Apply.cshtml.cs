@@ -123,6 +123,9 @@ public class ApplyModel : Pages.StudentPageModel
         var semester = _config["AppSettings:CurrentSemester"] ?? "";
         var grades = await _sso.GetFailedGradesAsync(StudentIIN, semester);
         var expelled = await _expelled.GetExpelledDisciplinesAsync(StudentIIN);
-        AvailableGrades = grades.Where(g => !expelled.Contains(g.DisciplineName)).ToList();
+        var applied = await _apps.GetAppliedDisciplinesAsync(StudentIIN);
+        AvailableGrades = grades
+            .Where(g => !expelled.Contains(g.DisciplineName) && !applied.Contains(g.DisciplineName))
+            .ToList();
     }
 }

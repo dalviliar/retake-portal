@@ -91,6 +91,18 @@ public class ApplicationService
         return apps;
     }
 
+    public async Task<HashSet<string>> GetAppliedDisciplinesAsync(string iin)
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT DISTINCT ai.discipline_name
+            FROM application_items ai
+            JOIN applications a ON a.id = ai.application_id
+            WHERE a.iin = @iin AND a.status IN ('pending', 'approved')";
+        var result = await conn.QueryAsync<string>(sql, new { iin });
+        return result.ToHashSet();
+    }
+
     public async Task ReviewApplicationAsync(int id, string status, string? rejectionReason, int reviewedBy)
     {
         using var conn = _db.Supabase();
