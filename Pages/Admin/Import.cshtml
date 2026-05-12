@@ -1,0 +1,92 @@
+@page
+@model RetakePortal.Pages.Admin.ImportModel
+@{
+    ViewData["Title"] = "Импорт данных из SSO";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h4 class="fw-bold mb-1">Импорт данных студентов</h4>
+        <p class="text-muted small mb-4">
+            Загрузите CSV-файлы, экспортированные из SSO. Выполняется один раз в начале семестра.
+        </p>
+
+        @if (Model.Result != null)
+        {
+            <div class="alert @(Model.Result.Errors.Any() ? "alert-warning" : "alert-success") mb-4">
+                <strong>@Model.SuccessMessage</strong>
+                Загружено: <strong>@Model.Result.Imported</strong>,
+                пропущено: <strong>@Model.Result.Skipped</strong>.
+                @if (Model.Result.Errors.Any())
+                {
+                    <details class="mt-2">
+                        <summary class="small">Показать ошибки (@Model.Result.Errors.Count)</summary>
+                        <ul class="mt-1 mb-0 small">
+                            @foreach (var e in Model.Result.Errors.Take(20))
+                            {
+                                <li>@e</li>
+                            }
+                        </ul>
+                    </details>
+                }
+            </div>
+        }
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-1">1. Студенты</h6>
+                        <p class="text-muted small mb-3">Данные о студентах (ФИО, специальность, уровень)</p>
+
+                        <div class="bg-light rounded p-2 mb-3">
+                            <code class="small text-muted">
+                                iin,full_name,specialty,institute,<br>department,course,education_level
+                            </code>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            Уровни: <code>bachelor</code>, <code>master_sci</code>,
+                            <code>master_prof</code>, <code>doctoral</code>
+                        </p>
+
+                        <form method="post" enctype="multipart/form-data" asp-page-handler="Students">
+                            <input type="file" name="file" class="form-control form-control-sm mb-2"
+                                   accept=".csv,.txt" required />
+                            <button class="btn btn-primary btn-sm w-100">Загрузить студентов</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-1">2. Оценки FX / F</h6>
+                        <p class="text-muted small mb-3">Оценки за текущий семестр</p>
+
+                        <div class="bg-light rounded p-2 mb-3">
+                            <code class="small text-muted">
+                                student_iin,discipline_name,<br>grade,credits,semester
+                            </code>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            Семестр: <code>@Model.CurrentSemester</code><br>
+                            Не-FX/F оценки пропускаются автоматически.
+                        </p>
+
+                        <form method="post" enctype="multipart/form-data" asp-page-handler="Grades">
+                            <input type="file" name="file" class="form-control form-control-sm mb-2"
+                                   accept=".csv,.txt" required />
+                            <button class="btn btn-success btn-sm w-100">Загрузить оценки</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a asp-page="/Admin/Setup" class="text-muted small me-3">Настройка аккаунтов</a>
+            <a asp-page="/Index" class="text-muted small">На главную</a>
+        </div>
+    </div>
+</div>

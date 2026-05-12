@@ -1,0 +1,46 @@
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.btn:focus, .btn:active:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.font-monospace {
+    font-family: 'Consolas', 'Courier New', monospace;
+    letter-spacing: 0.05em;
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.navbar-brand {
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+}
+
+.table th {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6c757d;
+}
+
+.discipline-block {
+    background: #fafafa;
+    transition: background 0.15s;
+}
+
+.discipline-block:has(.disc-check:checked) {
+    background: #f0f7ff;
+    border-color: #0d6efd !important;
+}

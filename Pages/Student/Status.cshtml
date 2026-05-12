@@ -1,0 +1,98 @@
+@page
+@model RetakePortal.Pages.Student.StatusModel
+@{
+    ViewData["Title"] = "Статус заявок";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <h4 class="fw-bold mb-4">Статус заявлений</h4>
+
+        @if (!Model.Searched)
+        {
+            <div class="card border-0 shadow-sm mb-4" style="max-width:420px">
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Введите ИИН для проверки статуса заявки</p>
+                    <form method="get">
+                        <div class="input-group">
+                            <input name="iin" class="form-control" placeholder="ИИН (12 цифр)"
+                                   maxlength="12" inputmode="numeric" value="@Model.IINInput" />
+                            <button class="btn btn-primary" type="submit">Проверить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+        else if (!Model.Applications.Any())
+        {
+            <div class="alert alert-info">Заявлений по ИИН <strong>@Model.IINInput</strong> не найдено.</div>
+            <a asp-page="/Student/Status" class="btn btn-outline-secondary btn-sm">Поиск снова</a>
+        }
+        else
+        {
+            <p class="text-muted small mb-3">ИИН: <strong>@Model.IINInput</strong></p>
+            @foreach (var app in Model.Applications)
+            {
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Заявление №@app.Id</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge @app.StatusBadgeClass">@app.StatusDisplay</span>
+                            <small class="text-muted">@app.SubmittedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <small class="text-muted">Студент</small>
+                                <div>@app.StudentFullName</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted">Специальность</small>
+                                <div>@app.Specialty</div>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm mt-2">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дисциплина</th>
+                                    <th class="text-center">Оценка</th>
+                                    <th class="text-center">Кредиты</th>
+                                    <th class="text-end">Сумма</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in app.Items)
+                                {
+                                    <tr>
+                                        <td>@item.DisciplineName</td>
+                                        <td class="text-center">
+                                            <span class="badge @(item.Grade == "F" ? "bg-danger" : "bg-warning text-dark")">@item.Grade</span>
+                                        </td>
+                                        <td class="text-center">@item.Credits</td>
+                                        <td class="text-end">@item.TotalCost.ToString("N0") тг</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="3" class="text-end">Итого:</td>
+                                    <td class="text-end">@app.TotalAmount.ToString("N0") тг</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        @if (app.Status == "rejected" && !string.IsNullOrEmpty(app.RejectionReason))
+                        {
+                            <div class="alert alert-danger py-2 mt-2 mb-0">
+                                <strong>Причина отклонения:</strong> @app.RejectionReason
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            <a asp-page="/Student/Status" class="btn btn-outline-secondary btn-sm">Поиск снова</a>
+        }
+    </div>
+</div>

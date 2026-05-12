@@ -1,0 +1,121 @@
+@page
+@model RetakePortal.Pages.Student.ApplyModel
+@{
+    ViewData["Title"] = "Подать заявление";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <h4 class="fw-bold mb-1">Заявление на пересдачу</h4>
+        <p class="text-muted small mb-4">Выберите дисциплины и загрузите необходимые документы</p>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        @if (!Model.AvailableGrades.Any())
+        {
+            <div class="alert alert-info">Нет доступных дисциплин для подачи заявления.</div>
+        }
+        else
+        {
+            <form method="post" enctype="multipart/form-data" id="applyForm">
+                @Html.AntiForgeryToken()
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            <strong>FX</strong> — прикрепите чек об оплате.<br />
+                            <strong>F</strong> — прикрепите подтверждающий документ (справка и т.д.) и чек об оплате.
+                        </p>
+
+                        @for (int i = 0; i < Model.AvailableGrades.Count; i++)
+                        {
+                            var g = Model.AvailableGrades[i];
+                            var cost = g.Credits * Model.CreditCost;
+                            <div class="border rounded p-3 mb-3 discipline-block" id="block-@i">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input disc-check" type="checkbox"
+                                           name="SelectedIndices" value="@i"
+                                           id="chk-@i" onchange="toggleUploads(@i)">
+                                    <label class="form-check-label fw-semibold" for="chk-@i">
+                                        @g.DisciplineName
+                                        <span class="badge @(g.GradeValue == "F" ? "bg-danger" : "bg-warning text-dark") ms-1">@g.GradeValue</span>
+                                        <span class="text-muted fw-normal ms-2">@g.Credits кр. &mdash; @cost.ToString("N0") тг</span>
+                                    </label>
+                                </div>
+
+                                <div id="uploads-@i" class="ps-4 upload-section" style="display:none">
+                                    @if (g.GradeValue == "F")
+                                    {
+                                        <div class="mb-2">
+                                            <label class="form-label small fw-semibold text-danger">
+                                                Подтверждающий документ <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="file" name="confDoc_@i" class="form-control form-control-sm"
+                                                   accept=".pdf,.jpg,.jpeg,.png" />
+                                            <div class="form-text">PDF, JPG или PNG</div>
+                                        </div>
+                                    }
+                                    <div class="mb-0">
+                                        <label class="form-label small fw-semibold">
+                                            Чек об оплате <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="file" name="payReceipt_@i" class="form-control form-control-sm"
+                                               accept=".pdf,.jpg,.jpeg,.png" />
+                                        <div class="form-text">PDF, JPG или PNG</div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="DisciplineNames" value="@g.DisciplineName" />
+                                <input type="hidden" name="GradeValues" value="@g.GradeValue" />
+                                <input type="hidden" name="Credits" value="@g.Credits" />
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Итого к оплате:</span>
+                        <span class="fs-4 fw-bold text-primary" id="totalAmount">0 тг</span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-page="/Student/Dashboard" class="btn btn-outline-secondary">Отмена</a>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                        Подать заявление
+                    </button>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const costs = @Html.Raw(Model.CostsJson);
+    const grades = @Html.Raw(Model.GradesJson);
+    const credits = @Html.Raw(Model.CreditsJson);
+
+    function toggleUploads(i) {
+        const checked = document.getElementById('chk-' + i).checked;
+        document.getElementById('uploads-' + i).style.display = checked ? 'block' : 'none';
+        updateTotal();
+    }
+
+    function updateTotal() {
+        let total = 0;
+        let any = false;
+        document.querySelectorAll('.disc-check:checked').forEach(cb => {
+            const i = parseInt(cb.value);
+            total += credits[i] * costs;
+            any = true;
+        });
+        document.getElementById('totalAmount').textContent = total.toLocaleString('ru-RU') + ' тг';
+        document.getElementById('submitBtn').disabled = !any;
+    }
+</script>
+}

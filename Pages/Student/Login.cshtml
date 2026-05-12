@@ -1,0 +1,33 @@
+@page
+@model RetakePortal.Pages.Student.LoginModel
+@{
+    ViewData["Title"] = "Вход — Студент";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow border-0">
+            <div class="card-body p-4">
+                <h4 class="text-center mb-1">Вход для студента</h4>
+                <p class="text-center text-muted small mb-4">Введите ваш ИИН для входа в систему</p>
+
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">ИИН (12 цифр)</label>
+                        <input asp-for="IIN" class="form-control form-control-lg text-center"
+                               placeholder="000000000000" maxlength="12" inputmode="numeric"
+                               autocomplete="off" />
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger py-2">@Model.ErrorMessage</div>
+                    }
+
+                    <button type="submit" class="btn btn-primary w-100 mt-1">Войти</button>
+                    <a asp-page="/Index" class="btn btn-link w-100 mt-1 text-muted">← Назад</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

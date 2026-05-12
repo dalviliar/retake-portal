@@ -1,0 +1,109 @@
+@page
+@model RetakePortal.Pages.Student.DashboardModel
+@using RetakePortal.Models
+@{
+    ViewData["Title"] = "Личный кабинет";
+}
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">Данные студента</h6>
+                <h5 class="fw-bold">@Model.Student!.FullName</h5>
+                <table class="table table-sm table-borderless mt-2 mb-0">
+                    <tr><td class="text-muted">ИИН</td><td>@Model.Student.IIN</td></tr>
+                    <tr><td class="text-muted">Институт</td><td>@Model.Student.Institute</td></tr>
+                    <tr><td class="text-muted">Кафедра</td><td>@Model.Student.Department</td></tr>
+                    <tr><td class="text-muted">Специальность</td><td>@Model.Student.Specialty</td></tr>
+                    <tr><td class="text-muted">Курс</td><td>@Model.Student.Course</td></tr>
+                    <tr><td class="text-muted">Уровень</td><td>@Model.Student.EducationLevelDisplay</td></tr>
+                    <tr><td class="text-muted">1 кредит</td><td class="fw-semibold">@Model.Student.CreditCost.ToString("N0") тг</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8 mb-4">
+        @if (Model.IsExpelledFromAll)
+        {
+            <div class="alert alert-danger">
+                <strong>Доступ ограничен.</strong> Вы включены в список изгнанных по всем дисциплинам с оценкой FX/F.
+                Подача заявления невозможна.
+            </div>
+        }
+        else if (Model.HasPendingApplication)
+        {
+            <div class="alert alert-warning">
+                У вас уже есть заявление <strong>на рассмотрении</strong>.
+                <a asp-page="/Student/Status" class="alert-link ms-1">Посмотреть статус &rarr;</a>
+            </div>
+        }
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-muted text-uppercase small mb-0">Дисциплины с FX / F</h6>
+                    <span class="badge bg-secondary">Семестр: @Model.CurrentSemester</span>
+                </div>
+
+                @if (!Model.Grades.Any())
+                {
+                    <p class="text-muted text-center py-3">Дисциплин с оценкой FX или F не найдено</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дисциплина</th>
+                                    <th class="text-center">Оценка</th>
+                                    <th class="text-center">Кредиты</th>
+                                    <th class="text-center">Сумма</th>
+                                    <th class="text-center">Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var g in Model.Grades)
+                                {
+                                    <tr class="@(g.IsExpelled ? "table-danger" : "")">
+                                        <td>@g.DisciplineName</td>
+                                        <td class="text-center">
+                                            <span class="badge @(g.GradeValue == "F" ? "bg-danger" : "bg-warning text-dark")">
+                                                @g.GradeValue
+                                            </span>
+                                        </td>
+                                        <td class="text-center">@g.Credits</td>
+                                        <td class="text-center">
+                                            @((g.Credits * Model.Student.CreditCost).ToString("N0")) тг
+                                        </td>
+                                        <td class="text-center">
+                                            @if (g.IsExpelled)
+                                            {
+                                                <span class="badge bg-danger">Изгнан</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Доступно</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (!Model.IsExpelledFromAll && !Model.HasPendingApplication && Model.Grades.Any(g => !g.IsExpelled))
+                    {
+                        <div class="mt-3 text-end">
+                            <a asp-page="/Student/Apply" class="btn btn-primary">
+                                Подать заявление &rarr;
+                            </a>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

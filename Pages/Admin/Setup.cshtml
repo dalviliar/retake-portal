@@ -1,0 +1,80 @@
+@page
+@model RetakePortal.Pages.Admin.SetupModel
+@{
+    ViewData["Title"] = "Начальная настройка";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        @if (Model.AlreadySetup)
+        {
+            <div class="alert alert-warning text-center">
+                <strong>Настройка уже выполнена.</strong><br />
+                Аккаунты специалистов уже существуют в базе данных.
+                <div class="mt-2">
+                    <a asp-page="/Index" class="btn btn-primary btn-sm">На главную</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-1">Начальная настройка</h5>
+                    <p class="text-muted small mb-4">
+                        Создайте аккаунты специалистов. Эта страница доступна только при пустой таблице specialists.
+                    </p>
+
+                    @if (Model.Success)
+                    {
+                        <div class="alert alert-success">
+                            Аккаунты успешно созданы! <a asp-page="/Index">Перейти на главную</a>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger">@Model.ErrorMessage</div>
+                    }
+
+                    <form method="post">
+                        <h6 class="border-bottom pb-2 mb-3">Специалист ОР</h6>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label small">Логин</label>
+                                <input asp-for="OrUsername" class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label class="form-label small">Пароль</label>
+                                <input asp-for="OrPassword" type="password" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small">ФИО</label>
+                            <input asp-for="OrFullName" class="form-control" />
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3">Специалист по актам</h6>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label small">Логин</label>
+                                <input asp-for="ActsUsername" class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label class="form-label small">Пароль</label>
+                                <input asp-for="ActsPassword" type="password" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small">ФИО</label>
+                            <input asp-for="ActsFullName" class="form-control" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Создать аккаунты</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

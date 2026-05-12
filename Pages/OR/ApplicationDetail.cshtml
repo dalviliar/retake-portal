@@ -1,0 +1,133 @@
+@page "{id:int}"
+@model RetakePortal.Pages.OR.ApplicationDetailModel
+@{
+    ViewData["Title"] = $"Заявление №{Model.App?.Id}";
+}
+
+@if (Model.App == null)
+{
+    <div class="alert alert-danger">Заявление не найдено.</div>
+    <a asp-page="/OR/Dashboard" class="btn btn-outline-secondary btn-sm">← Назад</a>
+    return;
+}
+
+<div class="mb-3">
+    <a asp-page="/OR/Dashboard" class="text-muted small">← Все заявления</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Заявление №@Model.App.Id</h4>
+        <span class="badge @Model.App.StatusBadgeClass fs-6">@Model.App.StatusDisplay</span>
+    </div>
+    <small class="text-muted">@Model.App.SubmittedAt.ToString("dd.MM.yyyy HH:mm")</small>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">Данные студента</h6>
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted">ИИН</td><td class="font-monospace">@Model.App.IIN</td></tr>
+                    <tr><td class="text-muted">ФИО</td><td class="fw-semibold">@Model.App.StudentFullName</td></tr>
+                    <tr><td class="text-muted">Институт</td><td>@Model.App.Institute</td></tr>
+                    <tr><td class="text-muted">Кафедра</td><td>@Model.App.Department</td></tr>
+                    <tr><td class="text-muted">Специальность</td><td>@Model.App.Specialty</td></tr>
+                    <tr><td class="text-muted">Курс</td><td>@Model.App.Course</td></tr>
+                    <tr><td class="text-muted">Уровень</td><td>@Model.App.EducationLevelDisplay</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">Дисциплины</h6>
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Дисциплина</th>
+                            <th class="text-center">Оценка</th>
+                            <th class="text-center">Кр.</th>
+                            <th class="text-end">Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.App.Items)
+                        {
+                            <tr>
+                                <td>
+                                    @item.DisciplineName
+                                    <div class="mt-1">
+                                        @if (!string.IsNullOrEmpty(item.ConfirmationDocumentUrl))
+                                        {
+                                            <a href="@item.ConfirmationDocumentUrl" target="_blank" class="badge bg-secondary text-decoration-none me-1">
+                                                Подтвержд. документ
+                                            </a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.PaymentReceiptUrl))
+                                        {
+                                            <a href="@item.PaymentReceiptUrl" target="_blank" class="badge bg-info text-decoration-none">
+                                                Чек
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @(item.Grade == "F" ? "bg-danger" : "bg-warning text-dark")">@item.Grade</span>
+                                </td>
+                                <td class="text-center">@item.Credits</td>
+                                <td class="text-end">@item.TotalCost.ToString("N0") тг</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold">
+                            <td colspan="3" class="text-end">Итого:</td>
+                            <td class="text-end">@Model.App.TotalAmount.ToString("N0") тг</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.App.Status == "rejected" && !string.IsNullOrEmpty(Model.App.RejectionReason))
+{
+    <div class="alert alert-danger mb-4">
+        <strong>Причина отклонения:</strong> @Model.App.RejectionReason
+    </div>
+}
+
+@if (Model.App.Status == "pending")
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h6 class="text-muted text-uppercase small mb-3">Принять решение</h6>
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger py-2">@Model.ErrorMessage</div>
+            }
+
+            <form method="post">
+                <input type="hidden" asp-for="AppId" />
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Причина (обязательна при отклонении)</label>
+                    <textarea asp-for="Reason" class="form-control" rows="3"
+                              placeholder="Укажите причину отклонения..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" name="decision" value="approved" class="btn btn-success">
+                        &#x2713; Одобрить
+                    </button>
+                    <button type="submit" name="decision" value="rejected" class="btn btn-danger">
+                        &#x2715; Отклонить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

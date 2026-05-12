@@ -1,0 +1,52 @@
+@page
+@model RetakePortal.Pages.Acts.AddExpelledModel
+@{
+    ViewData["Title"] = "Добавить изгнанного студента";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="mb-3">
+            <a asp-page="/Acts/Dashboard" class="text-muted small">← Назад к списку</a>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Добавить изгнанного студента</h5>
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger">@Model.ErrorMessage</div>
+                }
+
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">ИИН студента</label>
+                        <input asp-for="IIN" class="form-control font-monospace"
+                               placeholder="000000000000" maxlength="12" inputmode="numeric" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Дисциплина</label>
+                        <input asp-for="DisciplineName" class="form-control"
+                               placeholder="Полное название дисциплины" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Дата изгнания</label>
+                        <input asp-for="ExpulsionDate" type="date" class="form-control" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Скан акта от преподавателя</label>
+                        <input name="ActFile" type="file" class="form-control"
+                               accept=".pdf,.jpg,.jpeg,.png" />
+                        <div class="form-text">PDF, JPG или PNG</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">Добавить в список</button>
+                        <a asp-page="/Acts/Dashboard" class="btn btn-outline-secondary">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

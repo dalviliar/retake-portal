@@ -1,0 +1,56 @@
+@page
+@model RetakePortal.Pages.Acts.DashboardModel
+@{
+    ViewData["Title"] = "Изгнанные студенты";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Список изгнанных студентов</h4>
+    <a asp-page="/Acts/AddExpelled" class="btn btn-primary">+ Добавить</a>
+</div>
+
+@if (!Model.ExpelledStudents.Any())
+{
+    <div class="text-center text-muted py-5">Список пуст</div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ИИН</th>
+                        <th>Дисциплина</th>
+                        <th>Дата изгнания</th>
+                        <th>Акт</th>
+                        <th>Добавлено</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.ExpelledStudents)
+                    {
+                        <tr>
+                            <td class="font-monospace">@e.IIN</td>
+                            <td>@e.DisciplineName</td>
+                            <td>@e.ExpulsionDate.ToString("dd.MM.yyyy")</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(e.ActDocumentUrl))
+                                {
+                                    <a href="@e.ActDocumentUrl" target="_blank" class="badge bg-secondary text-decoration-none">
+                                        Открыть акт
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                            <td class="text-muted small">@e.AddedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

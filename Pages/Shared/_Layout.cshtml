@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — RetakePortal</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" asp-page="/Index">
+            RetakePortal &mdash; Офис Регистратора
+        </a>
+        <div class="navbar-collapse">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                @{
+                    var studentIIN  = Context.Session.GetString("StudentIIN");
+                    var studentName = Context.Session.GetString("StudentName");
+                    var specRole    = Context.Session.GetString("SpecRole");
+                    var specName    = Context.Session.GetString("SpecName");
+                }
+                @if (studentIIN != null)
+                {
+                    <li class="nav-item">
+                        <span class="navbar-text text-light small">@studentName</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Student/Dashboard">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Student/Status">Мои заявки</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" asp-page="/Logout">Выйти</a>
+                    </li>
+                }
+                else if (specRole == "or_specialist")
+                {
+                    <li class="nav-item">
+                        <span class="navbar-text text-light small">@specName (ОР)</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/OR/Dashboard">Заявки</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" asp-page="/Logout">Выйти</a>
+                    </li>
+                }
+                else if (specRole == "acts_specialist")
+                {
+                    <li class="nav-item">
+                        <span class="navbar-text text-light small">@specName (Акты)</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Acts/Dashboard">Изгнанные</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" asp-page="/Logout">Выйти</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4 flex-grow-1">
+    @RenderBody()
+</div>
+
+<footer class="text-center text-muted py-3 border-top bg-white">
+    <small>&copy; 2025 Satbayev University — Офис Регистратора</small>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
