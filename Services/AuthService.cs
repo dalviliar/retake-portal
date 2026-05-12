@@ -36,4 +36,47 @@ public class AuthService
             VALUES (@username, @hash, @role, @fullName)";
         await conn.ExecuteAsync(sql, new { username, hash, role, fullName });
     }
+
+    public async Task<List<Specialist>> GetAllSpecialistsAsync()
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT id, username, role, full_name AS FullName, created_at AS CreatedAt
+            FROM specialists WHERE role != 'admin' ORDER BY role, full_name";
+        return (await conn.QueryAsync<Specialist>(sql)).ToList();
+    }
+
+    public async Task DeleteSpecialistAsync(int id)
+    {
+        using var conn = _db.Supabase();
+        await conn.ExecuteAsync("DELETE FROM specialists WHERE id = @id AND role != 'admin'", new { id });
+    }
+
+    public async Task<List<SpecialistStat>> GetSpecialistStatsAsync()
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT s.id, s.full_name AS FullName, s.role,
+                   COUNT(a.id)                                       AS Total,
+                   COUNT(a.id) FILTER (WHERE a.status = 'approved') AS Approved,
+                   COUNT(a.id) FILTER (WHERE a.status = 'rejected') AS Rejected,
+                   COUNT(a.id) FILTER (WHERE a.status = 'pending')  AS Pending
+            FROM specialists s
+            LEFT JOIN applications a ON a.reviewed_by = s.id
+            WHERE s.role = 'or_specialist'
+            GROUP BY s.id, s.full_name, s.role
+            ORDER BY s.full_name";
+        return (await conn.QueryAsync<SpecialistStat>(sql)).ToList();
+    }
+}
+
+public class SpecialistStat
+{
+    public int Id { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public int Total { get; set; }
+    public int Approved { get; set; }
+    public int Rejected { get; set; }
+    public int Pending { get; set; }
 }

@@ -13,12 +13,9 @@ public class SetupModel : PageModel
     public bool Success { get; set; }
     public string? ErrorMessage { get; set; }
 
-    [BindProperty] public string OrUsername { get; set; } = "or_specialist";
-    [BindProperty] public string OrPassword { get; set; } = string.Empty;
-    [BindProperty] public string OrFullName { get; set; } = string.Empty;
-    [BindProperty] public string ActsUsername { get; set; } = "acts_specialist";
-    [BindProperty] public string ActsPassword { get; set; } = string.Empty;
-    [BindProperty] public string ActsFullName { get; set; } = string.Empty;
+    [BindProperty] public string Username { get; set; } = "admin";
+    [BindProperty] public string Password { get; set; } = string.Empty;
+    [BindProperty] public string FullName { get; set; } = string.Empty;
 
     public async Task OnGetAsync()
     {
@@ -30,14 +27,13 @@ public class SetupModel : PageModel
         AlreadySetup = await _auth.HasAnySpecialistAsync();
         if (AlreadySetup) return Page();
 
-        if (string.IsNullOrWhiteSpace(OrPassword) || string.IsNullOrWhiteSpace(ActsPassword))
+        if (string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = "Пароли не могут быть пустыми";
+            ErrorMessage = "Пароль не может быть пустым";
             return Page();
         }
 
-        await _auth.CreateSpecialistAsync(OrUsername, OrPassword, "or_specialist", OrFullName);
-        await _auth.CreateSpecialistAsync(ActsUsername, ActsPassword, "acts_specialist", ActsFullName);
+        await _auth.CreateSpecialistAsync(Username, Password, "admin", FullName);
         Success = true;
         return Page();
     }

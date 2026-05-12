@@ -1,0 +1,102 @@
+@page
+@model RetakePortal.Pages.Admin.SpecialistsModel
+@{ ViewData["Title"] = "Управление специалистами"; Layout = "_Layout"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Специалисты</h4>
+        <p class="text-muted small mb-0">Добро пожаловать, @Model.SpecName</p>
+    </div>
+    <form method="post" asp-page-handler="Logout">
+        <button class="btn btn-outline-secondary btn-sm">Выйти</button>
+    </form>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-success alert-dismissible">@Model.Message</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Добавить специалиста</h6>
+                <form method="post" asp-page-handler="Create">
+                    <div class="mb-3">
+                        <label class="form-label small">Роль</label>
+                        <select asp-for="NewRole" class="form-select">
+                            <option value="or_specialist">Специалист ОР</option>
+                            <option value="acts_specialist">Специалист по актам</option>
+                            <option value="director">Директор</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Логин</label>
+                        <input asp-for="NewUsername" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Пароль</label>
+                        <input asp-for="NewPassword" type="password" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">ФИО</label>
+                        <input asp-for="NewFullName" class="form-control" />
+                    </div>
+                    <button class="btn btn-primary w-100">Создать</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">ФИО</th>
+                            <th>Логин</th>
+                            <th>Роль</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Specialists)
+                        {
+                            <tr>
+                                <td class="ps-3">@s.FullName</td>
+                                <td class="text-muted small">@s.Username</td>
+                                <td>
+                                    @if (s.Role == "or_specialist")
+                                    {
+                                        <span class="badge bg-primary">ОР</span>
+                                    }
+                                    else if (s.Role == "acts_specialist")
+                                    {
+                                        <span class="badge bg-warning text-dark">Акты</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Директор</span>
+                                    }
+                                </td>
+                                <td>
+                                    <form method="post" asp-page-handler="Delete"
+                                          onsubmit="return confirm('Удалить специалиста?')">
+                                        <input type="hidden" name="id" value="@s.Id" />
+                                        <button class="btn btn-outline-danger btn-sm">Удалить</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Specialists.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-3">Нет специалистов</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

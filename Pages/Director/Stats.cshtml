@@ -1,0 +1,72 @@
+@page
+@model RetakePortal.Pages.Director.StatsModel
+@{ ViewData["Title"] = "Статистика"; Layout = "_Layout"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Статистика работы специалистов</h4>
+        <p class="text-muted small mb-0">@Model.SpecName</p>
+    </div>
+    <form method="post" asp-page-handler="Logout">
+        <button class="btn btn-outline-secondary btn-sm">Выйти</button>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-2 fw-bold text-primary">@Model.Stats.Sum(s => s.Total)</div>
+            <div class="text-muted small">Всего заявок</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-2 fw-bold text-success">@Model.Stats.Sum(s => s.Approved)</div>
+            <div class="text-muted small">Одобрено</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-2 fw-bold text-danger">@Model.Stats.Sum(s => s.Rejected)</div>
+            <div class="text-muted small">Отклонено</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-2 fw-bold text-warning">@Model.Stats.Sum(s => s.Pending)</div>
+            <div class="text-muted small">На рассмотрении</div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Специалист ОР</th>
+                    <th class="text-center">Всего</th>
+                    <th class="text-center">Одобрено</th>
+                    <th class="text-center">Отклонено</th>
+                    <th class="text-center">На рассмотрении</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Stats)
+                {
+                    <tr>
+                        <td class="ps-3 fw-semibold">@s.FullName</td>
+                        <td class="text-center">@s.Total</td>
+                        <td class="text-center text-success fw-semibold">@s.Approved</td>
+                        <td class="text-center text-danger fw-semibold">@s.Rejected</td>
+                        <td class="text-center text-warning fw-semibold">@s.Pending</td>
+                    </tr>
+                }
+                @if (!Model.Stats.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Нет данных</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

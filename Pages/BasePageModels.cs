@@ -40,13 +40,39 @@ public abstract class ORSpecialistPageModel : PageModel
 
 public abstract class ActsSpecialistPageModel : PageModel
 {
-    protected int SpecialistId   => int.Parse(HttpContext.Session.GetString(SessionKeys.SpecId)!);
-    protected string SpecName    => HttpContext.Session.GetString(SessionKeys.SpecName)!;
+    protected int SpecialistId => int.Parse(HttpContext.Session.GetString(SessionKeys.SpecId)!);
+    protected string SpecName  => HttpContext.Session.GetString(SessionKeys.SpecName)!;
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
         if (HttpContext.Session.GetString(SessionKeys.SpecRole) != "acts_specialist")
             context.Result = RedirectToPage("/Acts/Login");
+        base.OnPageHandlerExecuting(context);
+    }
+}
+
+public abstract class AdminPageModel : PageModel
+{
+    protected int SpecialistId => int.Parse(HttpContext.Session.GetString(SessionKeys.SpecId)!);
+    protected string SpecName  => HttpContext.Session.GetString(SessionKeys.SpecName)!;
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        if (HttpContext.Session.GetString(SessionKeys.SpecRole) != "admin")
+            context.Result = RedirectToPage("/Admin/Login");
+        base.OnPageHandlerExecuting(context);
+    }
+}
+
+public abstract class DirectorPageModel : PageModel
+{
+    protected int SpecialistId => int.Parse(HttpContext.Session.GetString(SessionKeys.SpecId)!);
+    protected string SpecName  => HttpContext.Session.GetString(SessionKeys.SpecName)!;
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        if (HttpContext.Session.GetString(SessionKeys.SpecRole) != "director")
+            context.Result = RedirectToPage("/Director/Login");
         base.OnPageHandlerExecuting(context);
     }
 }
