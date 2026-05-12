@@ -54,7 +54,7 @@ public abstract class ActsSpecialistPageModel : PageModel
 public abstract class AdminPageModel : PageModel
 {
     protected int SpecialistId => int.Parse(HttpContext.Session.GetString(SessionKeys.SpecId)!);
-    protected string SpecName  => HttpContext.Session.GetString(SessionKeys.SpecName)!;
+    public string SpecName     => HttpContext.Session.GetString(SessionKeys.SpecName)!;
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
@@ -67,7 +67,7 @@ public abstract class AdminPageModel : PageModel
 public abstract class DirectorPageModel : PageModel
 {
     protected int SpecialistId => int.Parse(HttpContext.Session.GetString(SessionKeys.SpecId)!);
-    protected string SpecName  => HttpContext.Session.GetString(SessionKeys.SpecName)!;
+    public string SpecName     => HttpContext.Session.GetString(SessionKeys.SpecName)!;
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
