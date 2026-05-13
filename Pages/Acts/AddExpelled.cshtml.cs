@@ -1,52 +1,83 @@
 using Microsoft.AspNetCore.Mvc;
 using RetakePortal.Models;
 using RetakePortal.Services;
+using StudentModel = RetakePortal.Models.Student;
 
 namespace RetakePortal.Pages.Acts;
 
 public class AddExpelledModel : Pages.ActsSpecialistPageModel
 {
     private readonly ExpelledStudentService _expelled;
-    private readonly FileUploadService _files;
+    private readonly SsoService _sso;
+    private readonly IConfiguration _config;
 
-    public AddExpelledModel(ExpelledStudentService expelled, FileUploadService files)
+    public AddExpelledModel(ExpelledStudentService expelled, SsoService sso, IConfiguration config)
     {
         _expelled = expelled;
-        _files = files;
+        _sso = sso;
+        _config = config;
     }
 
+    [BindProperty(SupportsGet = true)] public string? Q { get; set; }
+    [BindProperty(SupportsGet = true)] public string? SelectedIIN { get; set; }
     [BindProperty] public string IIN { get; set; } = string.Empty;
-    [BindProperty] public string DisciplineName { get; set; } = string.Empty;
     [BindProperty] public DateTime ExpulsionDate { get; set; } = DateTime.Today;
+    [BindProperty] public List<string> SelectedDisciplines { get; set; } = [];
+
+    public List<StudentModel> SearchResults { get; set; } = [];
+    public StudentModel? FoundStudent { get; set; }
+    public List<Grade> AvailableDisciplines { get; set; } = [];
     public string? ErrorMessage { get; set; }
 
-    public void OnGet() { }
+    public async Task<IActionResult> OnGetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(SelectedIIN))
+        {
+            await LoadStudentDataAsync(SelectedIIN.Trim());
+        }
+        else if (!string.IsNullOrWhiteSpace(Q))
+        {
+            var q = Q.Trim();
+            // Try exact IIN lookup first; if nothing found, fall back to name search
+            StudentModel? byIin = await _sso.GetStudentByIINAsync(q);
+            if (byIin != null)
+            {
+                await LoadStudentDataAsync(q);
+            }
+            else if (q.Length >= 2)
+            {
+                SearchResults = await _sso.SearchByNameAsync(q);
+                if (!SearchResults.Any())
+                    ErrorMessage = "Студент не найден";
+            }
+        }
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (string.IsNullOrWhiteSpace(IIN) || IIN.Length != 12 || !IIN.All(char.IsDigit))
+        if (!SelectedDisciplines.Any())
         {
-            ErrorMessage = "Введите корректный ИИН (12 цифр)";
-            return Page();
-        }
-        if (string.IsNullOrWhiteSpace(DisciplineName))
-        {
-            ErrorMessage = "Укажите название дисциплины";
+            await LoadStudentDataAsync(IIN);
+            ErrorMessage = "Выберите хотя бы одну дисциплину";
             return Page();
         }
 
-        var actFile = Request.Form.Files.GetFile("ActFile");
-        var actUrl = await _files.UploadAsync(actFile, "acts");
-
-        await _expelled.AddAsync(new ExpelledStudent
-        {
-            IIN = IIN.Trim(),
-            DisciplineName = DisciplineName.Trim(),
-            ExpulsionDate = ExpulsionDate,
-            ActDocumentUrl = actUrl,
-            AddedBy = SpecialistId
-        });
-
+        await _expelled.BulkAddAsync(IIN, SelectedDisciplines.ToArray(), ExpulsionDate, null, SpecialistId);
         return RedirectToPage("/Acts/Dashboard");
+    }
+
+    private async Task LoadStudentDataAsync(string iin)
+    {
+        FoundStudent = (StudentModel?)await _sso.GetStudentByIINAsync(iin);
+        if (FoundStudent == null) { ErrorMessage = "Студент с таким ИИН не найден"; return; }
+
+        var semester = _config["CurrentSemester"] ?? "";
+        var grades = await _sso.GetFailedGradesAsync(iin, semester);
+        var alreadyExpelled = await _expelled.GetExpelledDisciplinesAsync(iin);
+
+        AvailableDisciplines = grades
+            .Where(g => !alreadyExpelled.Contains(g.DisciplineName))
+            .ToList();
     }
 }

@@ -27,6 +27,20 @@ public class SsoService
         return await conn.QueryFirstOrDefaultAsync<Student>(sql, new { iin });
     }
 
+    public async Task<List<Student>> SearchByNameAsync(string query)
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT iin AS IIN, full_name AS FullName, specialty AS Specialty,
+                   institute AS Institute, department AS Department,
+                   course AS Course, education_level AS EducationLevel
+            FROM students
+            WHERE LOWER(full_name) LIKE @query
+            ORDER BY full_name
+            LIMIT 20";
+        return (await conn.QueryAsync<Student>(sql, new { query = $"%{query.ToLower()}%" })).ToList();
+    }
+
     public async Task<List<Grade>> GetFailedGradesAsync(string iin, string semester)
     {
         using var conn = _db.Supabase();

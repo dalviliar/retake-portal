@@ -21,9 +21,9 @@ else
                 <thead class="table-light">
                     <tr>
                         <th>ИИН</th>
+                        <th>ФИО</th>
                         <th>Дисциплина</th>
-                        <th>Дата изгнания</th>
-                        <th>Акт</th>
+                        <th>Дата акта</th>
                         <th>Добавлено</th>
                     </tr>
                 </thead>
@@ -31,21 +31,10 @@ else
                     @foreach (var e in Model.ExpelledStudents)
                     {
                         <tr>
-                            <td class="font-monospace">@e.IIN</td>
+                            <td class="font-monospace small">@e.IIN</td>
+                            <td class="fw-semibold">@(string.IsNullOrEmpty(e.StudentFullName) ? "—" : e.StudentFullName)</td>
                             <td>@e.DisciplineName</td>
                             <td>@e.ExpulsionDate.ToString("dd.MM.yyyy")</td>
-                            <td>
-                                @if (!string.IsNullOrEmpty(e.ActDocumentUrl))
-                                {
-                                    <a href="@e.ActDocumentUrl" target="_blank" class="badge bg-secondary text-decoration-none">
-                                        Открыть акт
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span class="text-muted small">—</span>
-                                }
-                            </td>
                             <td class="text-muted small">@e.AddedAt.ToString("dd.MM.yyyy HH:mm")</td>
                         </tr>
                     }

@@ -20,11 +20,31 @@ public class ExpelledStudentService
     {
         using var conn = _db.Supabase();
         const string sql = @"
-            SELECT id, iin, discipline_name AS DisciplineName,
-                   expulsion_date AS ExpulsionDate, act_document_url AS ActDocumentUrl,
-                   added_by AS AddedBy, added_at AS AddedAt
-            FROM expelled_students ORDER BY added_at DESC";
+            SELECT es.id, es.iin,
+                   COALESCE(s.full_name, '') AS StudentFullName,
+                   es.discipline_name AS DisciplineName,
+                   es.expulsion_date AS ExpulsionDate,
+                   es.act_document_url AS ActDocumentUrl,
+                   es.added_by AS AddedBy, es.added_at AS AddedAt
+            FROM expelled_students es
+            LEFT JOIN students s ON s.iin = es.iin
+            ORDER BY es.added_at DESC";
         return (await conn.QueryAsync<ExpelledStudent>(sql)).ToList();
+    }
+
+    public async Task BulkAddAsync(string iin, string[] disciplines, DateTime date, string? actUrl, int addedBy)
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            INSERT INTO expelled_students (iin, discipline_name, expulsion_date, act_document_url, added_by)
+            VALUES (@iin, @discipline, @date, @actUrl, @addedBy)
+            ON CONFLICT (iin, discipline_name) DO UPDATE
+                SET expulsion_date   = EXCLUDED.expulsion_date,
+                    act_document_url = EXCLUDED.act_document_url,
+                    added_by         = EXCLUDED.added_by,
+                    added_at         = NOW()";
+        foreach (var discipline in disciplines)
+            await conn.ExecuteAsync(sql, new { iin, discipline, date, actUrl, addedBy });
     }
 
     public async Task AddAsync(ExpelledStudent e)

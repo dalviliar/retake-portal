@@ -1,52 +1,127 @@
 @page
 @model RetakePortal.Pages.Acts.AddExpelledModel
 @{
-    ViewData["Title"] = "Добавить изгнанного студента";
+    ViewData["Title"] = "Блокировка дисциплин";
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-6">
-        <div class="mb-3">
-            <a asp-page="/Acts/Dashboard" class="text-muted small">← Назад к списку</a>
-        </div>
+<div class="mb-3">
+    <a asp-page="/Acts/Dashboard" class="text-muted small">← Назад к списку</a>
+</div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <h5 class="fw-bold mb-4">Добавить изгнанного студента</h5>
+<h4 class="fw-bold mb-4">Блокировка дисциплин студента</h4>
 
-                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+@* ── Шаг 1: поиск по имени ── *@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h6 class="text-muted text-uppercase small mb-3">Поиск студента</h6>
+        <form method="get" class="d-flex gap-2 align-items-start flex-column flex-sm-row">
+            <div>
+                <input name="Q" value="@Model.Q" class="form-control font-monospace"
+                       style="min-width:280px" placeholder="ИИН (12 цифр) или часть ФИО"
+                       autocomplete="off" />
+                <div class="form-text">Введите ИИН или часть ФИО — система найдёт сама.</div>
+            </div>
+            <button type="submit" class="btn btn-primary">Найти</button>
+            @if (Model.FoundStudent != null || Model.SearchResults.Any())
+            {
+                <a asp-page="/Acts/AddExpelled" class="btn btn-outline-secondary">Сбросить</a>
+            }
+        </form>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@* ── Шаг 2: список найденных студентов ── *@
+@if (Model.SearchResults.Any())
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                @foreach (var s in Model.SearchResults)
                 {
-                    <div class="alert alert-danger">@Model.ErrorMessage</div>
+                    <a asp-page="/Acts/AddExpelled" asp-route-selectedIIN="@s.IIN"
+                       class="list-group-item list-group-item-action px-4 py-3">
+                        <div class="fw-semibold">@s.FullName</div>
+                        <div class="text-muted small">
+                            @s.Institute &mdash; @s.Specialty &mdash; @s.Course курс
+                        </div>
+                    </a>
                 }
-
-                <form method="post" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">ИИН студента</label>
-                        <input asp-for="IIN" class="form-control font-monospace"
-                               placeholder="000000000000" maxlength="12" inputmode="numeric" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Дисциплина</label>
-                        <input asp-for="DisciplineName" class="form-control"
-                               placeholder="Полное название дисциплины" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Дата изгнания</label>
-                        <input asp-for="ExpulsionDate" type="date" class="form-control" />
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Скан акта от преподавателя</label>
-                        <input name="ActFile" type="file" class="form-control"
-                               accept=".pdf,.jpg,.jpeg,.png" />
-                        <div class="form-text">PDF, JPG или PNG</div>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-danger">Добавить в список</button>
-                        <a asp-page="/Acts/Dashboard" class="btn btn-outline-secondary">Отмена</a>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
-</div>
+}
+
+@* ── Шаг 3: студент выбран, показываем дисциплины ── *@
+@if (Model.FoundStudent != null)
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h6 class="text-muted text-uppercase small mb-3">Студент</h6>
+            <table class="table table-sm table-borderless mb-0" style="max-width:500px">
+                <tr><td class="text-muted" style="width:130px">ФИО</td><td class="fw-semibold">@Model.FoundStudent.FullName</td></tr>
+                <tr><td class="text-muted">ИИН</td><td class="font-monospace">@Model.FoundStudent.IIN</td></tr>
+                <tr><td class="text-muted">Институт</td><td>@Model.FoundStudent.Institute</td></tr>
+                <tr><td class="text-muted">Специальность</td><td>@Model.FoundStudent.Specialty</td></tr>
+                <tr><td class="text-muted">Курс</td><td>@Model.FoundStudent.Course</td></tr>
+            </table>
+        </div>
+    </div>
+
+    @if (!Model.AvailableDisciplines.Any())
+    {
+        <div class="alert alert-info">
+            Нет дисциплин для блокировки — у студента нет оценок F/I/FX в текущем семестре,
+            или все дисциплины уже заблокированы.
+        </div>
+    }
+    else
+    {
+        <form method="post">
+            <input type="hidden" name="IIN" value="@Model.FoundStudent.IIN" />
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="text-muted text-uppercase small mb-3">Выберите дисциплины для блокировки</h6>
+                    <div class="row row-cols-1 row-cols-md-2 g-2">
+                        @foreach (var g in Model.AvailableDisciplines)
+                        {
+                            var checkId = $"disc_{Math.Abs(g.DisciplineName.GetHashCode())}";
+                            var badgeClass = g.GradeValue switch {
+                                "F"  => "bg-danger",
+                                "FX" => "bg-warning text-dark",
+                                _    => "bg-info text-dark"
+                            };
+                            <div class="col">
+                                <div class="form-check border rounded p-3">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="SelectedDisciplines" value="@g.DisciplineName"
+                                           id="@checkId" />
+                                    <label class="form-check-label w-100" for="@checkId">
+                                        <span class="d-block fw-semibold">@g.DisciplineName</span>
+                                        <span class="badge @badgeClass mt-1">@g.GradeValue</span>
+                                        <span class="text-muted small ms-1">@g.Credits кр.</span>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4 d-flex align-items-center gap-3">
+                <label class="form-label fw-semibold mb-0">Дата акта</label>
+                <input asp-for="ExpulsionDate" type="date" class="form-control" style="max-width:180px" />
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Заблокировать выбранные</button>
+                <a asp-page="/Acts/Dashboard" class="btn btn-outline-secondary">Отмена</a>
+            </div>
+        </form>
+    }
+}
