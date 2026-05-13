@@ -41,16 +41,18 @@ WHERE s.StatusID IS NOT NULL
 
 $gradesQuery = @"
 SELECT
-    CAST(u.IIN AS NVARCHAR(20))         AS student_iin,
-    CAST(smc.Title AS NVARCHAR(500))    AS discipline_name,
-    ISNULL(CAST(smc.Code AS NVARCHAR(50)), '') AS discipline_code,
-    CAST(sc.LetterGrade AS NVARCHAR(2)) AS grade,
-    CAST(smc.Credits AS INT)            AS credits,
-    '$SEMESTER'                         AS semester
+    CAST(u.IIN AS NVARCHAR(20))                  AS student_iin,
+    CAST(smc.Title AS NVARCHAR(500))             AS discipline_name,
+    ISNULL(CAST(smc.Code AS NVARCHAR(50)), '')   AS discipline_code,
+    ISNULL(CAST(ou.Title AS NVARCHAR(255)), '')  AS discipline_department,
+    CAST(sc.LetterGrade AS NVARCHAR(2))          AS grade,
+    CAST(smc.Credits AS INT)                     AS credits,
+    '$SEMESTER'                                  AS semester
 FROM Edu_StudentCourses sc
 JOIN Edu_Students s          ON s.StudentID  = sc.StudentID
 JOIN Edu_Users u             ON u.ID         = s.StudentID
 JOIN Edu_SemesterCourses smc ON smc.ID       = sc.SemesterCourseID
+LEFT JOIN Edu_OrgUnits ou    ON ou.ID        = smc.OrgUnitID
 WHERE smc.SemesterID = $SEMESTER_ID
   AND sc.LetterGrade IN ('FX', 'F', 'I')
   AND (
@@ -152,12 +154,13 @@ $grades = Invoke-Sqlcmd -ServerInstance $SQL_SERVER -Database $SQL_DB `
 
 $gradeRows = $grades | ForEach-Object {
     @{
-        student_iin      = Format-Field $_.student_iin
-        discipline_name  = Format-Field $_.discipline_name
-        discipline_code  = Format-Field $_.discipline_code
-        grade            = Format-Field $_.grade
-        credits          = [int]$_.credits
-        semester         = Format-Field $_.semester
+        student_iin             = Format-Field $_.student_iin
+        discipline_name         = Format-Field $_.discipline_name
+        discipline_code         = Format-Field $_.discipline_code
+        discipline_department   = Format-Field $_.discipline_department
+        grade                   = Format-Field $_.grade
+        credits                 = [int]$_.credits
+        semester                = Format-Field $_.semester
     }
 }
 Write-Host "  Otsenok: $($gradeRows.Count) - otpravlyayu v Supabase..."

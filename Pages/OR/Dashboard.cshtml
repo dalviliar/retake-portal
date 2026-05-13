@@ -56,21 +56,32 @@
                     <input type="text" id="discSearch" class="form-control form-control-sm mb-2"
                            placeholder="Поиск по названию..." autocomplete="off" />
                     <div id="discList" style="max-height:320px; overflow-y:auto; padding-left:1.75rem">
-                        @foreach (var d in Model.AllDisciplines)
+                        @foreach (var group in Model.AllDisciplines.GroupBy(d => d.Department).OrderBy(g => g.Key))
                         {
-                            var checkId = $"dc_{Math.Abs(d.Name.GetHashCode())}";
-                            <div class="form-check disc-item py-1" data-search="@d.Display.ToLower()">
-                                <input class="form-check-input" type="checkbox"
-                                       name="disciplines" value="@d.Name" id="@checkId"
-                                       @(Model.DisciplineFilters.Contains(d.Name) ? "checked" : "") />
-                                <label class="form-check-label small" for="@checkId">
-                                    @if (!string.IsNullOrEmpty(d.Code))
-                                    {
-                                        <span class="text-muted font-monospace me-1">@d.Code</span>
-                                    }
-                                    @d.Name
-                                </label>
-                            </div>
+                            @if (!string.IsNullOrEmpty(group.Key))
+                            {
+                                <div class="text-muted small fw-semibold mt-2 mb-1 px-1 dept-label"
+                                     style="margin-left:-1.75rem; padding-left:0.5rem; background:#f8f9fa">
+                                    @group.Key
+                                </div>
+                            }
+                            @foreach (var d in group.OrderBy(d => d.Name))
+                            {
+                                var checkId = $"dc_{Math.Abs(d.Name.GetHashCode())}";
+                                <div class="form-check disc-item py-1"
+                                     data-search="@d.Display.ToLower() @d.Department.ToLower()">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="disciplines" value="@d.Name" id="@checkId"
+                                           @(Model.DisciplineFilters.Contains(d.Name) ? "checked" : "") />
+                                    <label class="form-check-label small" for="@checkId">
+                                        @if (!string.IsNullOrEmpty(d.Code))
+                                        {
+                                            <span class="text-muted font-monospace me-1">@d.Code</span>
+                                        }
+                                        @d.Name
+                                    </label>
+                                </div>
+                            }
                         }
                     </div>
                     <div class="border-top mt-2 pt-2 d-flex gap-2">

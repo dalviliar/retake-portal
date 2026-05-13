@@ -275,7 +275,8 @@ public class ApplicationService
         using var conn = _db.Supabase();
         const string sql = @"
             SELECT DISTINCT ai.discipline_name AS Name,
-                   COALESCE(g.discipline_code, '') AS Code
+                   COALESCE(g.discipline_code, '') AS Code,
+                   COALESCE(g.discipline_department, '') AS Department
             FROM application_items ai
             LEFT JOIN grades g ON g.discipline_name = ai.discipline_name
             ORDER BY ai.discipline_name";
@@ -298,6 +299,7 @@ public class DisciplineInfo
 {
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
+    public string Department { get; set; } = string.Empty;
     public string Display => string.IsNullOrEmpty(Code) ? Name : $"{Code} — {Name}";
 }
 
