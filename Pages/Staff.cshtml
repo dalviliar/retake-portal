@@ -1,0 +1,59 @@
+@page
+@model RetakePortal.Pages.StaffModel
+@{
+    ViewData["Title"] = "Вход для сотрудников";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-9 text-center">
+        <h4 class="fw-bold mb-1">Вход для сотрудников</h4>
+        <p class="text-muted mb-5">Satbayev University — Офис Регистратора</p>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-body p-4 text-center">
+                        <div class="display-4 mb-3">&#x1F4CB;</div>
+                        <h6 class="card-title">Специалист ОР</h6>
+                        <p class="card-text text-muted small">Рассмотрение и одобрение заявлений</p>
+                        <a asp-page="/OR/Login" class="btn btn-outline-primary w-100 mt-2">Войти</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-body p-4 text-center">
+                        <div class="display-4 mb-3">&#x1F4C4;</div>
+                        <h6 class="card-title">Специалист по актам</h6>
+                        <p class="card-text text-muted small">Ведение списка изгнанных студентов</p>
+                        <a asp-page="/Acts/Login" class="btn btn-outline-secondary w-100 mt-2">Войти</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-body p-4 text-center">
+                        <div class="display-4 mb-3">&#x1F4CA;</div>
+                        <h6 class="card-title">Директор</h6>
+                        <p class="card-text text-muted small">Согласование заявлений и статистика</p>
+                        <a asp-page="/Director/Login" class="btn btn-outline-dark w-100 mt-2">Войти</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-body p-4 text-center">
+                        <div class="display-4 mb-3">&#x2699;&#xFE0F;</div>
+                        <h6 class="card-title">Администратор</h6>
+                        <p class="card-text text-muted small">Управление пользователями системы</p>
+                        <a asp-page="/Admin/Login" class="btn btn-outline-danger w-100 mt-2">Войти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a asp-page="/Index" class="text-muted small">← Назад</a>
+        </div>
+    </div>
+</div>

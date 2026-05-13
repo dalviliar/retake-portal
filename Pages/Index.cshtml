@@ -5,45 +5,23 @@
 }
 
 <div class="row justify-content-center mt-5">
-    <div class="col-md-8 text-center">
+    <div class="col-md-5 text-center">
         <h2 class="fw-bold mb-2">Портал пересдачи экзаменов</h2>
         <p class="text-muted mb-5">Satbayev University — Офис Регистратора</p>
 
-        <div class="row g-4 justify-content-center">
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body p-4 text-center">
-                        <div class="display-4 mb-3">&#x1F393;</div>
-                        <h5 class="card-title">Студент</h5>
-                        <p class="card-text text-muted small">Подать заявление на пересдачу по ИИН</p>
-                        <a asp-page="/Student/Login" class="btn btn-primary w-100 mt-2">Войти</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body p-4 text-center">
-                        <div class="display-4 mb-3">&#x1F4CB;</div>
-                        <h5 class="card-title">Специалист ОР</h5>
-                        <p class="card-text text-muted small">Рассмотрение и одобрение заявлений</p>
-                        <a asp-page="/OR/Login" class="btn btn-outline-primary w-100 mt-2">Войти</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body p-4 text-center">
-                        <div class="display-4 mb-3">&#x1F4C4;</div>
-                        <h5 class="card-title">Специалист по актам</h5>
-                        <p class="card-text text-muted small">Ведение списка изгнанных студентов</p>
-                        <a asp-page="/Acts/Login" class="btn btn-outline-secondary w-100 mt-2">Войти</a>
-                    </div>
-                </div>
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-5 text-center">
+                <div class="display-3 mb-3">&#x1F393;</div>
+                <h5 class="card-title">Студент</h5>
+                <p class="card-text text-muted small">Подать заявление на пересдачу по ИИН</p>
+                <a asp-page="/Student/Login" class="btn btn-primary btn-lg w-100 mt-2">Войти</a>
             </div>
         </div>
 
-        <div class="mt-4">
-            <a asp-page="/Student/Status" class="text-muted small">Проверить статус заявки по ИИН &rarr;</a>
+        <a asp-page="/Student/Status" class="text-muted small">Проверить статус заявки по ИИН &rarr;</a>
+
+        <div class="mt-5">
+            <a asp-page="/Staff" class="text-muted" style="font-size:0.8rem; opacity:0.5;">Вход для сотрудников</a>
         </div>
     </div>
 </div>
