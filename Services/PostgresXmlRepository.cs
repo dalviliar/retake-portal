@@ -12,16 +12,37 @@ public class PostgresXmlRepository : IXmlRepository
 
     public IReadOnlyCollection<XElement> GetAllElements()
     {
-        using var conn = _db.Supabase();
-        var rows = conn.Query<string>("SELECT xml FROM data_protection_keys").ToList();
-        return rows.Select(XElement.Parse).ToList();
+        try
+        {
+            using var conn = _db.Supabase();
+            var rows = conn.Query<string>("SELECT xml FROM data_protection_keys").ToList();
+            var result = new List<XElement>();
+            foreach (var row in rows)
+            {
+                try { result.Add(XElement.Parse(row)); }
+                catch { /* skip malformed rows */ }
+            }
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DataProtection] GetAllElements failed: {ex.Message}");
+            return [];
+        }
     }
 
     public void StoreElement(XElement element, string friendlyName)
     {
-        using var conn = _db.Supabase();
-        conn.Execute(
-            "INSERT INTO data_protection_keys (friendly_name, xml) VALUES (@friendlyName, @xml)",
-            new { friendlyName, xml = element.ToString() });
+        try
+        {
+            using var conn = _db.Supabase();
+            conn.Execute(
+                "INSERT INTO data_protection_keys (friendly_name, xml) VALUES (@friendlyName, @xml)",
+                new { friendlyName, xml = element.ToString() });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DataProtection] StoreElement failed: {ex.Message}");
+        }
     }
 }
