@@ -20,12 +20,14 @@ public class ExpelledStudentService
     {
         using var conn = _db.Supabase();
         const string sql = @"
-            SELECT es.id, es.iin,
+            SELECT es.id          AS Id,
+                   es.iin         AS IIN,
                    COALESCE(s.full_name, '') AS StudentFullName,
-                   es.discipline_name AS DisciplineName,
-                   es.expulsion_date AS ExpulsionDate,
+                   es.discipline_name  AS DisciplineName,
+                   es.expulsion_date   AS ExpulsionDate,
                    es.act_document_url AS ActDocumentUrl,
-                   es.added_by AS AddedBy, es.added_at AS AddedAt
+                   es.added_by         AS AddedBy,
+                   es.added_at         AS AddedAt
             FROM expelled_students es
             LEFT JOIN students s ON s.iin = es.iin
             ORDER BY es.added_at DESC";
