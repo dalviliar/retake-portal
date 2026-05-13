@@ -60,11 +60,14 @@
                                     <th class="text-center">Оценка</th>
                                     <th class="text-center">Кредиты</th>
                                     <th class="text-end">Сумма</th>
+                                    @if (app.Status == "approved") { <th>Дата пересдачи</th> }
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var item in app.Items)
                                 {
+                                    var sched = Model.RetakeSchedules
+                                        .FirstOrDefault(s => s.DisciplineName == item.DisciplineName);
                                     <tr>
                                         <td>@item.DisciplineName</td>
                                         <td class="text-center">
@@ -72,6 +75,30 @@
                                         </td>
                                         <td class="text-center">@item.Credits</td>
                                         <td class="text-end">@item.TotalCost.ToString("N0") тг</td>
+                                        @if (app.Status == "approved")
+                                        {
+                                            <td>
+                                                @if (sched?.ExamDate != null)
+                                                {
+                                                    <span class="fw-semibold text-success">
+                                                        @sched.ExamDate.Value.ToString("dd.MM.yyyy")
+                                                    </span>
+                                                    <span class="text-muted small ms-1">
+                                                        @sched.StartTime–@sched.EndTime
+                                                    </span>
+                                                    @if (!string.IsNullOrEmpty(sched.Room))
+                                                    {
+                                                        <div class="text-muted small">
+                                                            @sched.Building, ауд. @sched.Room
+                                                        </div>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">Уточняется</span>
+                                                }
+                                            </td>
+                                        }
                                     </tr>
                                 }
                             </tbody>

@@ -27,6 +27,21 @@ public class SsoService
         return await conn.QueryFirstOrDefaultAsync<Student>(sql, new { iin });
     }
 
+    public async Task<List<RetakeSchedule>> GetRetakeScheduleAsync(string iin, string semester)
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT discipline_name AS DisciplineName,
+                   exam_date       AS ExamDate,
+                   start_time      AS StartTime,
+                   end_time        AS EndTime,
+                   room            AS Room,
+                   building        AS Building
+            FROM retake_schedules
+            WHERE student_iin = @iin AND semester = @semester";
+        return (await conn.QueryAsync<RetakeSchedule>(sql, new { iin, semester })).ToList();
+    }
+
     public async Task<List<Student>> SearchByNameAsync(string query)
     {
         using var conn = _db.Supabase();

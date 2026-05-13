@@ -97,6 +97,30 @@ function Push-ToSupabase {
     }
 }
 
+$scheduleQuery = @"
+SELECT
+    CAST(u.IIN AS NVARCHAR(20))        AS student_iin,
+    CAST(smc.Title AS NVARCHAR(500))   AS discipline_name,
+    '$SEMESTER'                        AS semester,
+    CONVERT(NVARCHAR(10), exz.ExamDate, 23)                        AS exam_date,
+    ISNULL(CONVERT(NVARCHAR(5), CAST(ts.Title AS time), 108), '')  AS start_time,
+    ISNULL(CONVERT(NVARCHAR(5), CAST(te.Title AS time), 108), '')  AS end_time,
+    ISNULL(CAST(aud.Title AS NVARCHAR(100)), '')                   AS room,
+    ISNULL(CAST(krp.ShortTitle AS NVARCHAR(100)), '')              AS building
+FROM Edu_SemesterCourseExamStudents estud
+JOIN Edu_SemesterCourseExams exz   ON exz.ID  = estud.SemesterCourseExamID
+JOIN Edu_SemesterCourses smc       ON smc.ID  = exz.SemesterCourseID
+JOIN Edu_Students s                ON s.StudentID = estud.StudentID
+JOIN Edu_Users u                   ON u.ID    = s.StudentID
+LEFT JOIN Edu_Times ts             ON ts.ID   = exz.StartID
+LEFT JOIN Edu_Times te             ON te.ID   = exz.EndID
+LEFT JOIN Edu_Rooms aud            ON aud.ID  = exz.RoomID
+LEFT JOIN Edu_Buildings krp        ON krp.ID  = aud.BuildingID
+WHERE smc.SemesterID = $SEMESTER_ID
+  AND exz.ExamDate IS NOT NULL
+  AND u.IIN IS NOT NULL
+"@
+
 # ── ЗАПУСК ──────────────────────────────────────────
 Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Sync started (semester ID=$SEMESTER_ID)" -ForegroundColor Cyan
 
@@ -135,5 +159,25 @@ $gradeRows = $grades | ForEach-Object {
 }
 Write-Host "  Otsenok: $($gradeRows.Count) - otpravlyayu v Supabase..."
 Push-ToSupabase -Table "grades" -Rows $gradeRows -OnConflict "student_iin,discipline_name,semester"
+
+# 3. Расписание пересдач
+Write-Host "  Loading retake schedules from SSO..."
+$schedules = Invoke-Sqlcmd -ServerInstance $SQL_SERVER -Database $SQL_DB `
+    -Query $scheduleQuery -ErrorAction Stop
+
+$scheduleRows = $schedules | ForEach-Object {
+    @{
+        student_iin     = Format-Field $_.student_iin
+        discipline_name = Format-Field $_.discipline_name
+        semester        = Format-Field $_.semester
+        exam_date       = Format-Field $_.exam_date
+        start_time      = Format-Field $_.start_time
+        end_time        = Format-Field $_.end_time
+        room            = Format-Field $_.room
+        building        = Format-Field $_.building
+    }
+}
+Write-Host "  Schedules: $($scheduleRows.Count) - otpravlyayu v Supabase..."
+Push-ToSupabase -Table "retake_schedules" -Rows $scheduleRows -OnConflict "student_iin,discipline_name,semester"
 
 Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Done!" -ForegroundColor Green
