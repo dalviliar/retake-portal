@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using RetakePortal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
