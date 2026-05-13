@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using RetakePortal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<DatabaseService>();
+builder.Services.AddSingleton<PostgresXmlRepository>();
+builder.Services.AddDataProtection().SetApplicationName("RetakePortal");
+builder.Services.AddOptions<KeyManagementOptions>()
+    .Configure<PostgresXmlRepository>((o, repo) => o.XmlRepository = repo);
 builder.Services.AddScoped<SsoService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApplicationService>();
