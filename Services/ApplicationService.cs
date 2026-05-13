@@ -57,7 +57,19 @@ public class ApplicationService
     public async Task<List<Application>> GetAllApplicationsAsync()
     {
         using var conn = _db.Supabase();
-        var sql = $"SELECT {AppSelectCols} FROM applications ORDER BY submitted_at DESC";
+        const string sql = @"
+            SELECT a.id, a.iin, a.student_full_name AS StudentFullName, a.specialty,
+                   a.institute, a.department, a.course, a.education_level AS EducationLevel,
+                   a.status, a.rejection_reason AS RejectionReason, a.total_amount AS TotalAmount,
+                   a.submitted_at AS SubmittedAt, a.reviewed_at AS ReviewedAt, a.reviewed_by AS ReviewedBy,
+                   a.expulsion_conflict AS ExpulsionConflict,
+                   a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
+                   COALESCE(sp_or.full_name, '')  AS ReviewedByName,
+                   COALESCE(sp_dir.full_name, '') AS DirectorName
+            FROM applications a
+            LEFT JOIN specialists sp_or  ON sp_or.id  = a.reviewed_by
+            LEFT JOIN specialists sp_dir ON sp_dir.id = a.director_reviewed_by
+            ORDER BY a.submitted_at DESC";
         var apps = (await conn.QueryAsync<Application>(sql)).ToList();
         foreach (var app in apps)
             app.Items = await GetItemsAsync(conn, app.Id);

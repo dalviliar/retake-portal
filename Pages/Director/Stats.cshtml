@@ -34,6 +34,8 @@ else
                         <th class="text-center">Дисц.</th>
                         <th class="text-end">Сумма</th>
                         <th class="text-center">Статус</th>
+                        <th>Специалист ОР</th>
+                        <th>Директор</th>
                         <th>Дата</th>
                     </tr>
                 </thead>
@@ -58,6 +60,28 @@ else
                             </td>
                             <td class="text-center">
                                 <span class="badge @app.StatusBadgeClass">@app.StatusDisplay</span>
+                            </td>
+                            <td class="small">
+                                @if (!string.IsNullOrEmpty(app.ReviewedByName))
+                                {
+                                    <span>@app.ReviewedByName</span>
+                                    @if (app.ReviewedAt.HasValue)
+                                    {
+                                        <div class="text-muted">@app.ReviewedAt.Value.ToAlmatyShort()</div>
+                                    }
+                                }
+                                else { <span class="text-muted">—</span> }
+                            </td>
+                            <td class="small">
+                                @if (!string.IsNullOrEmpty(app.DirectorName))
+                                {
+                                    <span>@app.DirectorName</span>
+                                    @if (app.DirectorReviewedAt.HasValue)
+                                    {
+                                        <div class="text-muted">@app.DirectorReviewedAt.Value.ToAlmatyShort()</div>
+                                    }
+                                }
+                                else { <span class="text-muted">—</span> }
                             </td>
                             <td class="small text-muted">@app.SubmittedAt.ToAlmatyShort()</td>
                         </tr>
