@@ -23,9 +23,9 @@ public class LoginModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (string.IsNullOrWhiteSpace(IIN) || IIN.Length != 12 || !IIN.All(char.IsDigit))
+        if (string.IsNullOrWhiteSpace(IIN))
         {
-            ErrorMessage = "Введите корректный ИИН (12 цифр)";
+            ErrorMessage = "Введите ИИН";
             return Page();
         }
 

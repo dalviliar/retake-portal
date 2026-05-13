@@ -18,7 +18,7 @@ $SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 
 $studentsQuery = @"
 SELECT
-    CAST(u.IIN AS NVARCHAR(12)) AS iin,
+    CAST(u.IIN AS NVARCHAR(20)) AS iin,
     CAST(u.LastName + ' ' + u.FirstName + ' ' + ISNULL(u.MiddleName, '') AS NVARCHAR(255)) AS full_name,
     CAST(sp.Title   AS NVARCHAR(255)) AS specialty,
     CAST(inst.Title AS NVARCHAR(255)) AS institute,
@@ -41,7 +41,7 @@ WHERE s.StatusID IS NOT NULL
 
 $gradesQuery = @"
 SELECT
-    CAST(u.IIN AS NVARCHAR(12))       AS student_iin,
+    CAST(u.IIN AS NVARCHAR(20))       AS student_iin,
     CAST(smc.Title AS NVARCHAR(500))  AS discipline_name,
     CAST(sc.LetterGrade AS NVARCHAR(2)) AS grade,
     CAST(smc.Credits AS INT)          AS credits,

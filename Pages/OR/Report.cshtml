@@ -1,0 +1,61 @@
+@page
+@model RetakePortal.Pages.OR.ReportModel
+@{ ViewData["Title"] = "Отчёт"; Layout = "_Layout"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Отчёт по пересдачам</h4>
+        <p class="text-muted small mb-0">По институтам</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-page="/OR/Report" asp-page-handler="Download" class="btn btn-success">
+            ⬇ Скачать Excel
+        </a>
+        <a asp-page="/OR/Dashboard" class="btn btn-outline-secondary btn-sm">← Назад</a>
+    </div>
+</div>
+
+@{
+    var byInstitute = Model.Data.GroupBy(d => d.Institute).OrderBy(g => g.Key).ToList();
+}
+
+@if (!byInstitute.Any())
+{
+    <div class="alert alert-info">Нет данных для отчёта.</div>
+}
+else
+{
+    @foreach (var group in byInstitute)
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">@group.Key</div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">№</th>
+                            <th>ФИО</th>
+                            <th>ИИН</th>
+                            <th class="text-center">Курс</th>
+                            <th class="text-center">Дисциплин</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int num = 1; }
+                        @foreach (var row in group.OrderBy(r => r.StudentFullName))
+                        {
+                            <tr>
+                                <td class="ps-3 text-muted">@num</td>
+                                <td>@row.StudentFullName</td>
+                                <td class="font-monospace small">@row.IIN</td>
+                                <td class="text-center">@row.Course</td>
+                                <td class="text-center fw-semibold">@row.DisciplineCount</td>
+                            </tr>
+                            num++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
