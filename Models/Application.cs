@@ -20,6 +20,7 @@ public class Application
     public DateTime? DirectorReviewedAt { get; set; }
     public int? DirectorReviewedBy { get; set; }
     public string? DirectorName { get; set; }
+    public string? ReviewedByName { get; set; }
 
     public List<ApplicationItem> Items { get; set; } = [];
 

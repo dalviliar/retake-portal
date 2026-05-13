@@ -79,6 +79,35 @@
     </div>
 </div>
 
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h6 class="text-muted text-uppercase small mb-3">История рассмотрения</h6>
+        <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+                <span class="badge bg-secondary me-2">Подано</span>
+                <span class="small">@Model.App.SubmittedAt.ToString("dd.MM.yyyy HH:mm")</span>
+            </li>
+            @if (Model.App.ReviewedAt.HasValue && !string.IsNullOrEmpty(Model.App.ReviewedByName))
+            {
+                <li class="mb-2">
+                    <span class="badge bg-primary me-2">ОР</span>
+                    <span class="small fw-semibold">@Model.App.ReviewedByName</span>
+                    <span class="text-muted small ms-2">@Model.App.ReviewedAt.Value.ToAlmaty()</span>
+                </li>
+            }
+            @if (Model.App.DirectorReviewedAt.HasValue && !string.IsNullOrEmpty(Model.App.DirectorName))
+            {
+                <li class="mb-2">
+                    <span class="badge bg-dark me-2">Директор</span>
+                    <span class="small fw-semibold">@Model.App.DirectorName</span>
+                    <span class="text-muted small ms-2">@Model.App.DirectorReviewedAt.Value.ToAlmaty()</span>
+                    <span class="badge @Model.App.StatusBadgeClass ms-2">@Model.App.StatusDisplay</span>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
 @if (Model.App.Status == "pending_director")
 {
     <div class="card border-0 shadow-sm">

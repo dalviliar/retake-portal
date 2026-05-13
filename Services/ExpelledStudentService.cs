@@ -52,7 +52,7 @@ public class ExpelledStudentService
             UPDATE applications
             SET expulsion_conflict = TRUE
             WHERE iin = @iin
-              AND status IN ('pending', 'pending_director', 'director_approved')
+              AND status IN ('pending', 'pending_director', 'director_approved', 'approved')
               AND EXISTS (
                   SELECT 1 FROM application_items ai
                   WHERE ai.application_id = applications.id
