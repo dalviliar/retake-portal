@@ -10,7 +10,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public DashboardModel(ApplicationService apps) => _apps = apps;
 
     public List<Application> Applications { get; set; } = [];
-    public List<string> AllDisciplines { get; set; } = [];
+    public List<DisciplineInfo> AllDisciplines { get; set; } = [];
     public string StatusFilter { get; set; } = "";
     public List<string> DisciplineFilters { get; set; } = [];
     public int ActionRequiredCount { get; set; }
@@ -26,7 +26,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
         DisciplineFilters = disciplines ?? [];
         CurrentPage = Math.Max(1, page);
 
-        AllDisciplines = await _apps.GetAllDisciplineNamesAsync();
+        AllDisciplines = await _apps.GetAllDisciplinesAsync();
         ActionRequiredCount = await _apps.GetActionRequiredCountAsync();
         ExpulsionConflictCount = await _apps.GetExpulsionConflictCountAsync();
 

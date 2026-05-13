@@ -226,12 +226,16 @@ public class ApplicationService
         return (apps, total);
     }
 
-    public async Task<List<string>> GetAllDisciplineNamesAsync()
+    public async Task<List<DisciplineInfo>> GetAllDisciplinesAsync()
     {
         using var conn = _db.Supabase();
-        var rows = await conn.QueryAsync<string>(
-            "SELECT DISTINCT discipline_name FROM application_items ORDER BY discipline_name");
-        return rows.ToList();
+        const string sql = @"
+            SELECT DISTINCT ai.discipline_name AS Name,
+                   COALESCE(g.discipline_code, '') AS Code
+            FROM application_items ai
+            LEFT JOIN grades g ON g.discipline_name = ai.discipline_name
+            ORDER BY ai.discipline_name";
+        return (await conn.QueryAsync<DisciplineInfo>(sql)).ToList();
     }
 
     private static async Task<List<ApplicationItem>> GetItemsAsync(NpgsqlConnection conn, int appId)
@@ -244,6 +248,13 @@ public class ApplicationService
             FROM application_items WHERE application_id = @appId ORDER BY id";
         return (await conn.QueryAsync<ApplicationItem>(sql, new { appId })).ToList();
     }
+}
+
+public class DisciplineInfo
+{
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Display => string.IsNullOrEmpty(Code) ? Name : $"{Code} — {Name}";
 }
 
 public class ReportRow

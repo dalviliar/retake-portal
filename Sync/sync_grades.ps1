@@ -41,11 +41,12 @@ WHERE s.StatusID IS NOT NULL
 
 $gradesQuery = @"
 SELECT
-    CAST(u.IIN AS NVARCHAR(20))       AS student_iin,
-    CAST(smc.Title AS NVARCHAR(500))  AS discipline_name,
+    CAST(u.IIN AS NVARCHAR(20))         AS student_iin,
+    CAST(smc.Title AS NVARCHAR(500))    AS discipline_name,
+    ISNULL(CAST(smc.Code AS NVARCHAR(50)), '') AS discipline_code,
     CAST(sc.LetterGrade AS NVARCHAR(2)) AS grade,
-    CAST(smc.Credits AS INT)          AS credits,
-    '$SEMESTER'                       AS semester
+    CAST(smc.Credits AS INT)            AS credits,
+    '$SEMESTER'                         AS semester
 FROM Edu_StudentCourses sc
 JOIN Edu_Students s          ON s.StudentID  = sc.StudentID
 JOIN Edu_Users u             ON u.ID         = s.StudentID
@@ -151,11 +152,12 @@ $grades = Invoke-Sqlcmd -ServerInstance $SQL_SERVER -Database $SQL_DB `
 
 $gradeRows = $grades | ForEach-Object {
     @{
-        student_iin     = Format-Field $_.student_iin
-        discipline_name = Format-Field $_.discipline_name
-        grade           = Format-Field $_.grade
-        credits         = [int]$_.credits
-        semester        = Format-Field $_.semester
+        student_iin      = Format-Field $_.student_iin
+        discipline_name  = Format-Field $_.discipline_name
+        discipline_code  = Format-Field $_.discipline_code
+        grade            = Format-Field $_.grade
+        credits          = [int]$_.credits
+        semester         = Format-Field $_.semester
     }
 }
 Write-Host "  Otsenok: $($gradeRows.Count) - otpravlyayu v Supabase..."

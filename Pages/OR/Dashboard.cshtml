@@ -58,12 +58,18 @@
                     <div id="discList" style="max-height:320px; overflow-y:auto">
                         @foreach (var d in Model.AllDisciplines)
                         {
-                            var checkId = $"dc_{Math.Abs(d.GetHashCode())}";
-                            <div class="form-check disc-item px-2 py-1">
+                            var checkId = $"dc_{Math.Abs(d.Name.GetHashCode())}";
+                            <div class="form-check disc-item px-2 py-1" data-search="@d.Display.ToLower()">
                                 <input class="form-check-input" type="checkbox"
-                                       name="disciplines" value="@d" id="@checkId"
-                                       @(Model.DisciplineFilters.Contains(d) ? "checked" : "") />
-                                <label class="form-check-label small" for="@checkId">@d</label>
+                                       name="disciplines" value="@d.Name" id="@checkId"
+                                       @(Model.DisciplineFilters.Contains(d.Name) ? "checked" : "") />
+                                <label class="form-check-label small" for="@checkId">
+                                    @if (!string.IsNullOrEmpty(d.Code))
+                                    {
+                                        <span class="text-muted font-monospace me-1">@d.Code</span>
+                                    }
+                                    @d.Name
+                                </label>
                             </div>
                         }
                     </div>
@@ -89,8 +95,7 @@
     document.getElementById('discSearch').addEventListener('input', function () {
         var q = this.value.toLowerCase();
         document.querySelectorAll('.disc-item').forEach(function (el) {
-            var label = el.querySelector('label').textContent.toLowerCase();
-            el.style.display = label.includes(q) ? '' : 'none';
+            el.style.display = el.dataset.search.includes(q) ? '' : 'none';
         });
     });
 </script>
