@@ -20,7 +20,7 @@
         <h4 class="fw-bold mb-1">Заявление №@Model.App.Id</h4>
         <span class="badge @Model.App.StatusBadgeClass fs-6">@Model.App.StatusDisplay</span>
     </div>
-    <small class="text-muted">@Model.App.SubmittedAt.ToString("dd.MM.yyyy HH:mm")</small>
+    <small class="text-muted">@Model.App.SubmittedAt.ToAlmaty() (Алматы)</small>
 </div>
 
 <div class="row mb-4">

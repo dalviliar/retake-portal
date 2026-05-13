@@ -81,13 +81,38 @@
                                         <span class="badge bg-secondary">Директор</span>
                                     }
                                 </td>
-                                <td>
+                                <td class="d-flex gap-1">
+                                    <button class="btn btn-outline-warning btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#reset-@s.Id">
+                                        Пароль
+                                    </button>
                                     <form method="post" asp-page-handler="Delete"
                                           onsubmit="return confirm('Удалить специалиста?')">
                                         <input type="hidden" name="id" value="@s.Id" />
                                         <button class="btn btn-outline-danger btn-sm">Удалить</button>
                                     </form>
                                 </td>
+
+                                <div class="modal fade" id="reset-@s.Id" tabindex="-1">
+                                    <div class="modal-dialog modal-sm">
+                                        <form method="post" asp-page-handler="ResetPassword">
+                                            <input type="hidden" name="id" value="@s.Id" />
+                                            <div class="modal-content">
+                                                <div class="modal-header py-2">
+                                                    <h6 class="modal-title mb-0">Сброс пароля — @s.FullName</h6>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <input type="password" name="newPassword" class="form-control"
+                                                           placeholder="Новый пароль (мин. 6)" required minlength="6" />
+                                                </div>
+                                                <div class="modal-footer py-2">
+                                                    <button type="submit" class="btn btn-warning btn-sm">Сохранить</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </tr>
                         }
                         @if (!Model.Specialists.Any())

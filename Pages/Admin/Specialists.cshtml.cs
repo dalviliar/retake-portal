@@ -37,6 +37,17 @@ public class SpecialistsModel : RetakePortal.Pages.AdminPageModel
         return Page();
     }
 
+    public async Task<IActionResult> OnPostResetPasswordAsync(int id, string newPassword)
+    {
+        if (!string.IsNullOrWhiteSpace(newPassword) && newPassword.Length >= 6)
+        {
+            await _auth.ResetPasswordAsync(id, newPassword);
+            Message = "Пароль сброшен.";
+        }
+        Specialists = await _auth.GetAllSpecialistsAsync();
+        return Page();
+    }
+
     public IActionResult OnPostLogout()
     {
         HttpContext.Session.Clear();

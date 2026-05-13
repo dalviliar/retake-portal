@@ -49,6 +49,9 @@
                         <a class="nav-link" asp-page="/OR/Report">Отчёт</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" asp-page="/Account/ChangePassword">Пароль</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link text-warning" asp-page="/Logout">Выйти</a>
                     </li>
                 }
@@ -59,6 +62,45 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" asp-page="/Acts/Dashboard">Изгнанные</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Account/ChangePassword">Пароль</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" asp-page="/Logout">Выйти</a>
+                    </li>
+                }
+                else if (specRole == "director")
+                {
+                    <li class="nav-item">
+                        <span class="navbar-text text-light small">@specName (Директор)</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Director/Stats">Статистика</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Director/Applications">Согласование</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Director/Report">Отчёт</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Account/ChangePassword">Пароль</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" asp-page="/Logout">Выйти</a>
+                    </li>
+                }
+                else if (specRole == "admin")
+                {
+                    <li class="nav-item">
+                        <span class="navbar-text text-light small">@specName (Админ)</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Admin/Specialists">Специалисты</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Account/ChangePassword">Пароль</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-warning" asp-page="/Logout">Выйти</a>

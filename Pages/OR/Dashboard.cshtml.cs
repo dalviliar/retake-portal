@@ -14,25 +14,28 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public string StatusFilter { get; set; } = "";
     public string DisciplineFilter { get; set; } = "";
     public int ActionRequiredCount { get; set; }
+    public int CurrentPage { get; set; } = 1;
+    public int TotalPages { get; set; } = 1;
+    public int TotalCount { get; set; }
+    private const int PageSize = 50;
 
-    public async Task<IActionResult> OnGetAsync(string? status, string? discipline)
+    public async Task<IActionResult> OnGetAsync(string? status, string? discipline, int page = 1)
     {
         StatusFilter = status ?? "";
         DisciplineFilter = discipline ?? "";
+        CurrentPage = Math.Max(1, page);
 
-        var all = await _apps.GetAllApplicationsAsync();
         AllDisciplines = await _apps.GetAllDisciplineNamesAsync();
+        ActionRequiredCount = await _apps.GetActionRequiredCountAsync();
 
-        ActionRequiredCount = all.Count(a => a.Status is "pending" or "director_approved");
+        var (items, total) = await _apps.GetApplicationsPagedAsync(
+            StatusFilter, DisciplineFilter, CurrentPage, PageSize);
 
-        var filtered = string.IsNullOrEmpty(StatusFilter)
-            ? all
-            : all.Where(a => a.Status == StatusFilter).ToList();
+        Applications = items;
+        TotalCount = total;
+        TotalPages = (int)Math.Ceiling((double)total / PageSize);
+        if (TotalPages < 1) TotalPages = 1;
 
-        if (!string.IsNullOrEmpty(DisciplineFilter))
-            filtered = filtered.Where(a => a.Items.Any(i => i.DisciplineName == DisciplineFilter)).ToList();
-
-        Applications = filtered;
         return Page();
     }
 }

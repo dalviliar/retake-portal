@@ -52,6 +52,26 @@ public class AuthService
         await conn.ExecuteAsync("DELETE FROM specialists WHERE id = @id AND role != 'admin'", new { id });
     }
 
+    public async Task<bool> ChangePasswordAsync(int id, string currentPassword, string newPassword)
+    {
+        using var conn = _db.Supabase();
+        var hash = await conn.ExecuteScalarAsync<string>(
+            "SELECT password_hash FROM specialists WHERE id = @id", new { id });
+        if (hash == null || !BCrypt.Net.BCrypt.Verify(currentPassword, hash)) return false;
+        var newHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await conn.ExecuteAsync(
+            "UPDATE specialists SET password_hash = @newHash WHERE id = @id", new { id, newHash });
+        return true;
+    }
+
+    public async Task ResetPasswordAsync(int id, string newPassword)
+    {
+        using var conn = _db.Supabase();
+        var newHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await conn.ExecuteAsync(
+            "UPDATE specialists SET password_hash = @newHash WHERE id = @id", new { id, newHash });
+    }
+
     public async Task<List<SpecialistStat>> GetSpecialistStatsAsync()
     {
         using var conn = _db.Supabase();

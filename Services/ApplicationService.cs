@@ -146,6 +146,54 @@ public class ApplicationService
         return (await conn.QueryAsync<ReportRow>(sql)).ToList();
     }
 
+    public async Task<int> GetActionRequiredCountAsync()
+    {
+        using var conn = _db.Supabase();
+        return await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM applications WHERE status IN ('pending', 'director_approved')");
+    }
+
+    public async Task<(List<Application> Items, int Total)> GetApplicationsPagedAsync(
+        string status, string discipline, int page, int pageSize)
+    {
+        using var conn = _db.Supabase();
+        var conditions = new List<string>();
+        var p = new Dapper.DynamicParameters();
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            conditions.Add("a.status = @status");
+            p.Add("status", status);
+        }
+        if (!string.IsNullOrEmpty(discipline))
+        {
+            conditions.Add("EXISTS (SELECT 1 FROM application_items ai WHERE ai.application_id = a.id AND ai.discipline_name = @discipline)");
+            p.Add("discipline", discipline);
+        }
+
+        var where = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+
+        var total = await conn.ExecuteScalarAsync<int>(
+            $"SELECT COUNT(*) FROM applications a {where}", p);
+
+        p.Add("limit", pageSize);
+        p.Add("offset", (page - 1) * pageSize);
+
+        var sql = $@"
+            SELECT id, iin, student_full_name AS StudentFullName, specialty, institute, department,
+                   course, education_level AS EducationLevel, status,
+                   rejection_reason AS RejectionReason, total_amount AS TotalAmount,
+                   submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy
+            FROM applications a {where}
+            ORDER BY submitted_at DESC
+            LIMIT @limit OFFSET @offset";
+
+        var apps = (await conn.QueryAsync<Application>(sql, p)).ToList();
+        foreach (var app in apps)
+            app.Items = await GetItemsAsync(conn, app.Id);
+        return (apps, total);
+    }
+
     public async Task<List<string>> GetAllDisciplineNamesAsync()
     {
         using var conn = _db.Supabase();
