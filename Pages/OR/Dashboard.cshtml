@@ -55,11 +55,11 @@
                 <div class="dropdown-menu p-2 shadow" style="min-width:420px; max-width:500px">
                     <input type="text" id="discSearch" class="form-control form-control-sm mb-2"
                            placeholder="Поиск по названию..." autocomplete="off" />
-                    <div id="discList" style="max-height:320px; overflow-y:auto">
+                    <div id="discList" style="max-height:320px; overflow-y:auto; padding-left:1.75rem">
                         @foreach (var d in Model.AllDisciplines)
                         {
                             var checkId = $"dc_{Math.Abs(d.Name.GetHashCode())}";
-                            <div class="form-check disc-item px-2 py-1" data-search="@d.Display.ToLower()">
+                            <div class="form-check disc-item py-1" data-search="@d.Display.ToLower()">
                                 <input class="form-check-input" type="checkbox"
                                        name="disciplines" value="@d.Name" id="@checkId"
                                        @(Model.DisciplineFilters.Contains(d.Name) ? "checked" : "") />
