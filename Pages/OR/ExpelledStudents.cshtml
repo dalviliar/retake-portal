@@ -1,0 +1,42 @@
+@page
+@model RetakePortal.Pages.OR.ExpelledStudentsModel
+@{
+    ViewData["Title"] = "Список отчисленных";
+}
+
+<h4 class="fw-bold mb-4">Отчисленные студенты</h4>
+
+@if (!Model.Students.Any())
+{
+    <div class="text-center text-muted py-5">Список отчисленных пуст</div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ФИО</th>
+                        <th>ИИН</th>
+                        <th>Дисциплина</th>
+                        <th>Дата акта</th>
+                        <th>Добавлено</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.Students)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@s.StudentFullName</td>
+                            <td class="font-monospace small">@s.IIN</td>
+                            <td>@s.DisciplineName</td>
+                            <td>@s.ExpulsionDate.ToString("dd.MM.yyyy")</td>
+                            <td class="text-muted small">@s.AddedAt.ToAlmatyShort()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

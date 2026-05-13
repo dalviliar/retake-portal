@@ -46,15 +46,18 @@ public class ApplicationService
         await conn.ExecuteAsync(sql, item);
     }
 
+    private const string AppSelectCols = @"
+            id, iin, student_full_name AS StudentFullName, specialty, institute, department,
+            course, education_level AS EducationLevel, status,
+            rejection_reason AS RejectionReason, total_amount AS TotalAmount,
+            submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy,
+            expulsion_conflict AS ExpulsionConflict,
+            director_reviewed_at AS DirectorReviewedAt, director_reviewed_by AS DirectorReviewedBy";
+
     public async Task<List<Application>> GetAllApplicationsAsync()
     {
         using var conn = _db.Supabase();
-        const string sql = @"
-            SELECT id, iin, student_full_name AS StudentFullName, specialty, institute, department,
-                   course, education_level AS EducationLevel, status,
-                   rejection_reason AS RejectionReason, total_amount AS TotalAmount,
-                   submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy
-            FROM applications ORDER BY submitted_at DESC";
+        var sql = $"SELECT {AppSelectCols} FROM applications ORDER BY submitted_at DESC";
         var apps = (await conn.QueryAsync<Application>(sql)).ToList();
         foreach (var app in apps)
             app.Items = await GetItemsAsync(conn, app.Id);
@@ -64,12 +67,7 @@ public class ApplicationService
     public async Task<Application?> GetApplicationByIdAsync(int id)
     {
         using var conn = _db.Supabase();
-        const string sql = @"
-            SELECT id, iin, student_full_name AS StudentFullName, specialty, institute, department,
-                   course, education_level AS EducationLevel, status,
-                   rejection_reason AS RejectionReason, total_amount AS TotalAmount,
-                   submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy
-            FROM applications WHERE id = @id";
+        var sql = $"SELECT {AppSelectCols} FROM applications WHERE id = @id";
         var app = await conn.QueryFirstOrDefaultAsync<Application>(sql, new { id });
         if (app == null) return null;
         app.Items = await GetItemsAsync(conn, id);
@@ -79,12 +77,7 @@ public class ApplicationService
     public async Task<List<Application>> GetApplicationsByIINAsync(string iin)
     {
         using var conn = _db.Supabase();
-        const string sql = @"
-            SELECT id, iin, student_full_name AS StudentFullName, specialty, institute, department,
-                   course, education_level AS EducationLevel, status,
-                   rejection_reason AS RejectionReason, total_amount AS TotalAmount,
-                   submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy
-            FROM applications WHERE iin = @iin ORDER BY submitted_at DESC";
+        var sql = $"SELECT {AppSelectCols} FROM applications WHERE iin = @iin ORDER BY submitted_at DESC";
         var apps = (await conn.QueryAsync<Application>(sql, new { iin })).ToList();
         foreach (var app in apps)
             app.Items = await GetItemsAsync(conn, app.Id);
@@ -117,16 +110,41 @@ public class ApplicationService
     public async Task<List<Application>> GetApplicationsForDirectorAsync()
     {
         using var conn = _db.Supabase();
-        const string sql = @"
-            SELECT id, iin, student_full_name AS StudentFullName, specialty, institute, department,
-                   course, education_level AS EducationLevel, status,
-                   rejection_reason AS RejectionReason, total_amount AS TotalAmount,
-                   submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy
-            FROM applications WHERE status = 'pending_director' ORDER BY submitted_at";
+        var sql = $"SELECT {AppSelectCols} FROM applications WHERE status = 'pending_director' ORDER BY submitted_at";
         var apps = (await conn.QueryAsync<Application>(sql)).ToList();
         foreach (var app in apps)
             app.Items = await GetItemsAsync(conn, app.Id);
         return apps;
+    }
+
+    public async Task DirectorReviewApplicationAsync(int id, string status, string? rejectionReason, int directorId)
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            UPDATE applications
+            SET status = @status, rejection_reason = @rejectionReason,
+                director_reviewed_at = NOW(), director_reviewed_by = @directorId
+            WHERE id = @id";
+        await conn.ExecuteAsync(sql, new { id, status, rejectionReason, directorId });
+    }
+
+    public async Task<List<Application>> GetDirectorHistoryAsync(int directorId)
+    {
+        using var conn = _db.Supabase();
+        var sql = $@"SELECT {AppSelectCols} FROM applications
+            WHERE director_reviewed_by = @directorId
+            ORDER BY director_reviewed_at DESC";
+        var apps = (await conn.QueryAsync<Application>(sql, new { directorId })).ToList();
+        foreach (var app in apps)
+            app.Items = await GetItemsAsync(conn, app.Id);
+        return apps;
+    }
+
+    public async Task<int> GetExpulsionConflictCountAsync()
+    {
+        using var conn = _db.Supabase();
+        return await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM applications WHERE expulsion_conflict = TRUE AND status IN ('pending', 'pending_director', 'director_approved')");
     }
 
     public async Task<List<ReportRow>> GetReportDataAsync()
@@ -179,14 +197,7 @@ public class ApplicationService
         p.Add("limit", pageSize);
         p.Add("offset", (page - 1) * pageSize);
 
-        var sql = $@"
-            SELECT id, iin, student_full_name AS StudentFullName, specialty, institute, department,
-                   course, education_level AS EducationLevel, status,
-                   rejection_reason AS RejectionReason, total_amount AS TotalAmount,
-                   submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy
-            FROM applications a {where}
-            ORDER BY submitted_at DESC
-            LIMIT @limit OFFSET @offset";
+        var sql = $"SELECT {AppSelectCols} FROM applications a {where} ORDER BY submitted_at DESC LIMIT @limit OFFSET @offset";
 
         var apps = (await conn.QueryAsync<Application>(sql, p)).ToList();
         foreach (var app in apps)

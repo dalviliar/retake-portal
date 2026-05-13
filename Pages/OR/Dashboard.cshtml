@@ -4,6 +4,14 @@
     ViewData["Title"] = "Заявления — ОР";
 }
 
+@if (Model.ExpulsionConflictCount > 0)
+{
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+        <strong>⚠ Внимание:</strong>
+        <span>У <strong>@Model.ExpulsionConflictCount</strong> заявл. выявлен конфликт — студент отчислен по одной из дисциплин после подачи заявки. Проверьте и примите решение.</span>
+    </div>
+}
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold mb-0">Все заявления</h4>
     <div class="d-flex gap-2 flex-wrap">
@@ -93,6 +101,10 @@ else
                             <td class="text-end fw-semibold">@app.TotalAmount.ToString("N0") тг</td>
                             <td class="text-center">
                                 <span class="badge @app.StatusBadgeClass">@app.StatusDisplay</span>
+                                @if (app.ExpulsionConflict)
+                                {
+                                    <span class="badge bg-warning text-dark ms-1" title="Студент отчислён">⚠</span>
+                                }
                             </td>
                             <td class="small text-muted">@app.SubmittedAt.ToAlmatyShort()</td>
                             <td>

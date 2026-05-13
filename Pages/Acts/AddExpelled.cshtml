@@ -96,6 +96,7 @@
                                 "FX" => "bg-warning text-dark",
                                 _    => "bg-info text-dark"
                             };
+                            var badgeText = g.GradeValue ?? "";
                             <div class="col">
                                 <div class="form-check border rounded p-3">
                                     <input class="form-check-input" type="checkbox"
@@ -103,7 +104,7 @@
                                            id="@checkId" />
                                     <label class="form-check-label w-100" for="@checkId">
                                         <span class="d-block fw-semibold">@g.DisciplineName</span>
-                                        <span class="badge @badgeClass mt-1">@g.GradeValue</span>
+                                        <span class="badge @badgeClass mt-1">@badgeText</span>
                                         <span class="text-muted small ms-1">@g.Credits кр.</span>
                                     </label>
                                 </div>

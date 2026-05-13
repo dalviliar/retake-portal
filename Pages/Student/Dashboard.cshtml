@@ -25,11 +25,20 @@
     </div>
 
     <div class="col-md-8 mb-4">
-        @if (Model.IsExpelledFromAll)
+        @{
+            var blockedGrades = Model.Grades.Where(g => g.IsExpelled).ToList();
+        }
+        @if (blockedGrades.Any())
         {
-            <div class="alert alert-danger">
-                <strong>Доступ ограничен.</strong> Вы включены в список изгнанных по всем дисциплинам с оценкой FX/F.
-                Подача заявления невозможна.
+            <div class="alert alert-info">
+                <strong>Обратите внимание.</strong>
+                По следующим дисциплинам имеется акт о нарушении — подача заявления на пересдачу по ним невозможна:
+                <ul class="mb-0 mt-1">
+                    @foreach (var b in blockedGrades)
+                    {
+                        <li>@b.DisciplineName</li>
+                    }
+                </ul>
             </div>
         }
         else if (Model.HasPendingApplication)
@@ -83,7 +92,7 @@
                                         <td class="text-center">
                                             @if (g.IsExpelled)
                                             {
-                                                <span class="badge bg-danger">Изгнан</span>
+                                                <span class="badge bg-secondary">Акт нарушения</span>
                                             }
                                             else
                                             {

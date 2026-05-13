@@ -32,7 +32,7 @@ public class DirectorApplicationDetailModel : RetakePortal.Pages.DirectorPageMod
         }
 
         var status = decision == "approved" ? "director_approved" : "rejected";
-        await _apps.ReviewApplicationAsync(AppId, status, Reason?.Trim(), SpecialistId);
+        await _apps.DirectorReviewApplicationAsync(AppId, status, Reason?.Trim(), SpecialistId);
         return RedirectToPage("/Director/Applications");
     }
 }

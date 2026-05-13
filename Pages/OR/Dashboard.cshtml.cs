@@ -14,6 +14,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public string StatusFilter { get; set; } = "";
     public string DisciplineFilter { get; set; } = "";
     public int ActionRequiredCount { get; set; }
+    public int ExpulsionConflictCount { get; set; }
     public int CurrentPage { get; set; } = 1;
     public int TotalPages { get; set; } = 1;
     public int TotalCount { get; set; }
@@ -27,6 +28,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
 
         AllDisciplines = await _apps.GetAllDisciplineNamesAsync();
         ActionRequiredCount = await _apps.GetActionRequiredCountAsync();
+        ExpulsionConflictCount = await _apps.GetExpulsionConflictCountAsync();
 
         var (items, total) = await _apps.GetApplicationsPagedAsync(
             StatusFilter, DisciplineFilter, CurrentPage, PageSize);

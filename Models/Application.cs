@@ -16,6 +16,9 @@ public class Application
     public DateTime SubmittedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
     public int? ReviewedBy { get; set; }
+    public bool ExpulsionConflict { get; set; }
+    public DateTime? DirectorReviewedAt { get; set; }
+    public int? DirectorReviewedBy { get; set; }
 
     public List<ApplicationItem> Items { get; set; } = [];
 

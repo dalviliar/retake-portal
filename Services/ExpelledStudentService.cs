@@ -37,7 +37,7 @@ public class ExpelledStudentService
     public async Task BulkAddAsync(string iin, string[] disciplines, DateTime date, string? actUrl, int addedBy)
     {
         using var conn = _db.Supabase();
-        const string sql = @"
+        const string insertSql = @"
             INSERT INTO expelled_students (iin, discipline_name, expulsion_date, act_document_url, added_by)
             VALUES (@iin, @discipline, @date, @actUrl, @addedBy)
             ON CONFLICT (iin, discipline_name) DO UPDATE
@@ -46,7 +46,19 @@ public class ExpelledStudentService
                     added_by         = EXCLUDED.added_by,
                     added_at         = NOW()";
         foreach (var discipline in disciplines)
-            await conn.ExecuteAsync(sql, new { iin, discipline, date, actUrl, addedBy });
+            await conn.ExecuteAsync(insertSql, new { iin, discipline, date, actUrl, addedBy });
+
+        const string conflictSql = @"
+            UPDATE applications
+            SET expulsion_conflict = TRUE
+            WHERE iin = @iin
+              AND status IN ('pending', 'pending_director', 'director_approved')
+              AND EXISTS (
+                  SELECT 1 FROM application_items ai
+                  WHERE ai.application_id = applications.id
+                    AND ai.discipline_name = ANY(@disciplines)
+              )";
+        await conn.ExecuteAsync(conflictSql, new { iin, disciplines });
     }
 
     public async Task AddAsync(ExpelledStudent e)
