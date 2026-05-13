@@ -22,6 +22,9 @@ public class Application
     public string? DirectorName { get; set; }
     public string? ReviewedByName { get; set; }
     public string? ReviewedByRole { get; set; }
+    public int? ScheduledBy { get; set; }
+    public DateTime? ScheduledAt { get; set; }
+    public string? ScheduledByName { get; set; }
 
     public List<ApplicationItem> Items { get; set; } = [];
 

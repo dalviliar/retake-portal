@@ -157,9 +157,33 @@
                     <span class="badge @Model.App.StatusBadgeClass ms-2">@Model.App.StatusDisplay</span>
                 </li>
             }
+            @if (Model.App.ScheduledAt.HasValue && !string.IsNullOrEmpty(Model.App.ScheduledByName))
+            {
+                <li class="mb-2">
+                    <span class="badge bg-success me-2">Пересдача назначена</span>
+                    <span class="small fw-semibold">@Model.App.ScheduledByName</span>
+                    <span class="text-muted small ms-2">@Model.App.ScheduledAt.Value.ToAlmaty()</span>
+                </li>
+            }
         </ul>
     </div>
 </div>
+
+@if (Model.App.Status == "approved" && !Model.App.ScheduledAt.HasValue)
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h6 class="text-muted text-uppercase small mb-3">Назначение пересдачи</h6>
+            <p class="text-muted small mb-3">Заявление одобрено. Подтвердите назначение пересдачи студенту.</p>
+            <form method="post">
+                <input type="hidden" asp-for="AppId" />
+                <button type="submit" name="decision" value="schedule" class="btn btn-success">
+                    &#x2713; Пересдача назначена
+                </button>
+            </form>
+        </div>
+    </div>
+}
 
 @if (Model.App.Status is "pending" or "director_approved")
 {

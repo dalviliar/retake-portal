@@ -52,7 +52,8 @@ public class ApplicationService
             rejection_reason AS RejectionReason, total_amount AS TotalAmount,
             submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy,
             expulsion_conflict AS ExpulsionConflict,
-            director_reviewed_at AS DirectorReviewedAt, director_reviewed_by AS DirectorReviewedBy";
+            director_reviewed_at AS DirectorReviewedAt, director_reviewed_by AS DirectorReviewedBy,
+            scheduled_by AS ScheduledBy, scheduled_at AS ScheduledAt";
 
     public async Task<List<Application>> GetAllApplicationsAsync()
     {
@@ -64,11 +65,14 @@ public class ApplicationService
                    a.submitted_at AS SubmittedAt, a.reviewed_at AS ReviewedAt, a.reviewed_by AS ReviewedBy,
                    a.expulsion_conflict AS ExpulsionConflict,
                    a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
-                   COALESCE(sp_or.full_name, '')  AS ReviewedByName,
-                   COALESCE(sp_dir.full_name, '') AS DirectorName
+                   a.scheduled_by AS ScheduledBy, a.scheduled_at AS ScheduledAt,
+                   COALESCE(sp_or.full_name, '')    AS ReviewedByName,
+                   COALESCE(sp_dir.full_name, '')   AS DirectorName,
+                   COALESCE(sp_sch.full_name, '')   AS ScheduledByName
             FROM applications a
             LEFT JOIN specialists sp_or  ON sp_or.id  = a.reviewed_by
             LEFT JOIN specialists sp_dir ON sp_dir.id = a.director_reviewed_by
+            LEFT JOIN specialists sp_sch ON sp_sch.id = a.scheduled_by
             ORDER BY a.submitted_at DESC";
         var apps = (await conn.QueryAsync<Application>(sql)).ToList();
         foreach (var app in apps)
@@ -86,12 +90,15 @@ public class ApplicationService
                    a.submitted_at AS SubmittedAt, a.reviewed_at AS ReviewedAt, a.reviewed_by AS ReviewedBy,
                    a.expulsion_conflict AS ExpulsionConflict,
                    a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
-                   COALESCE(sp_or.full_name, '')  AS ReviewedByName,
-                   COALESCE(sp_dir.full_name, '') AS DirectorName,
+                   COALESCE(sp_or.full_name, '')   AS ReviewedByName,
+                   COALESCE(sp_dir.full_name, '')  AS DirectorName,
+                   COALESCE(sp_sch.full_name, '')  AS ScheduledByName,
+                   a.scheduled_by AS ScheduledBy, a.scheduled_at AS ScheduledAt,
                    sp_or.role AS ReviewedByRole
             FROM applications a
             LEFT JOIN specialists sp_or  ON sp_or.id  = a.reviewed_by
             LEFT JOIN specialists sp_dir ON sp_dir.id = a.director_reviewed_by
+            LEFT JOIN specialists sp_sch ON sp_sch.id = a.scheduled_by
             WHERE a.id = @id";
         var app = await conn.QueryFirstOrDefaultAsync<Application>(sql, new { id });
         if (app == null) return null;
@@ -163,6 +170,7 @@ public class ApplicationService
                    a.submitted_at AS SubmittedAt, a.reviewed_at AS ReviewedAt, a.reviewed_by AS ReviewedBy,
                    a.expulsion_conflict AS ExpulsionConflict,
                    a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
+                   a.scheduled_by AS ScheduledBy, a.scheduled_at AS ScheduledAt,
                    COALESCE(s.full_name, '') AS DirectorName
             FROM applications a
             LEFT JOIN specialists s ON s.id = a.director_reviewed_by
@@ -179,6 +187,14 @@ public class ApplicationService
         using var conn = _db.Supabase();
         return await conn.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM applications WHERE expulsion_conflict = TRUE AND status IN ('pending', 'pending_director', 'director_approved', 'approved')");
+    }
+
+    public async Task ScheduleRetakeAsync(int id, int specialistId)
+    {
+        using var conn = _db.Supabase();
+        await conn.ExecuteAsync(
+            "UPDATE applications SET scheduled_by = @specialistId, scheduled_at = NOW() WHERE id = @id",
+            new { id, specialistId });
     }
 
     public async Task<List<ReportRow>> GetReportDataAsync()
@@ -238,11 +254,14 @@ public class ApplicationService
                    a.submitted_at AS SubmittedAt, a.reviewed_at AS ReviewedAt, a.reviewed_by AS ReviewedBy,
                    a.expulsion_conflict AS ExpulsionConflict,
                    a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
-                   COALESCE(sp_or.full_name, '')  AS ReviewedByName,
-                   COALESCE(sp_dir.full_name, '') AS DirectorName
+                   a.scheduled_by AS ScheduledBy, a.scheduled_at AS ScheduledAt,
+                   COALESCE(sp_or.full_name, '')   AS ReviewedByName,
+                   COALESCE(sp_dir.full_name, '')  AS DirectorName,
+                   COALESCE(sp_sch.full_name, '')  AS ScheduledByName
             FROM applications a
             LEFT JOIN specialists sp_or  ON sp_or.id  = a.reviewed_by
             LEFT JOIN specialists sp_dir ON sp_dir.id = a.director_reviewed_by
+            LEFT JOIN specialists sp_sch ON sp_sch.id = a.scheduled_by
             {where} ORDER BY a.submitted_at DESC LIMIT @limit OFFSET @offset";
 
         var apps = (await conn.QueryAsync<Application>(sql, p)).ToList();

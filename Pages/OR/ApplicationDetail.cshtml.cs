@@ -25,6 +25,12 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
     {
         App = await _apps.GetApplicationByIdAsync(AppId);
 
+        if (decision == "schedule")
+        {
+            await _apps.ScheduleRetakeAsync(AppId, SpecialistId);
+            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId });
+        }
+
         if (decision == "rejected" && string.IsNullOrWhiteSpace(Reason))
         {
             ErrorMessage = "При отклонении необходимо указать причину";

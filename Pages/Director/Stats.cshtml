@@ -36,6 +36,7 @@ else
                         <th class="text-center">Статус</th>
                         <th>Специалист ОР</th>
                         <th>Директор</th>
+                        <th>Назначил пересдачу</th>
                         <th>Дата</th>
                     </tr>
                 </thead>
@@ -79,6 +80,17 @@ else
                                     @if (app.DirectorReviewedAt.HasValue)
                                     {
                                         <div class="text-muted">@app.DirectorReviewedAt.Value.ToAlmatyShort()</div>
+                                    }
+                                }
+                                else { <span class="text-muted">—</span> }
+                            </td>
+                            <td class="small">
+                                @if (!string.IsNullOrEmpty(app.ScheduledByName))
+                                {
+                                    <span>@app.ScheduledByName</span>
+                                    @if (app.ScheduledAt.HasValue)
+                                    {
+                                        <div class="text-muted">@app.ScheduledAt.Value.ToAlmatyShort()</div>
                                     }
                                 }
                                 else { <span class="text-muted">—</span> }
