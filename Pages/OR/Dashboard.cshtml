@@ -8,7 +8,7 @@
 {
     <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
         <strong>⚠ Внимание:</strong>
-        <span>У <strong>@Model.ExpulsionConflictCount</strong> заявл. выявлен конфликт — студент отчислен по одной из дисциплин после подачи заявки. Проверьте и примите решение.</span>
+        <span>У <strong>@Model.ExpulsionConflictCount</strong> заявл. выявлен конфликт — по дисциплине из заявки имеется акт нарушения. Проверьте и примите решение.</span>
     </div>
 }
 
@@ -161,7 +161,7 @@ else
                                 <span class="badge @app.StatusBadgeClass">@app.StatusDisplay</span>
                                 @if (app.ExpulsionConflict)
                                 {
-                                    <span class="badge bg-warning text-dark ms-1" title="Студент отчислён">⚠</span>
+                                    <span class="badge bg-warning text-dark ms-1" title="Акт нарушения">⚠</span>
                                 }
                             </td>
                             <td class="small">

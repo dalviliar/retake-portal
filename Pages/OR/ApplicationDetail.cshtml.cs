@@ -37,6 +37,12 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
             return Page();
         }
 
+        if (decision == "rejected" && App?.Status == "approved")
+        {
+            await _apps.RejectApprovedApplicationAsync(AppId, Reason?.Trim(), SpecialistId);
+            return RedirectToPage("/OR/Dashboard");
+        }
+
         var status = decision switch
         {
             "send_to_director" => "pending_director",

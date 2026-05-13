@@ -189,6 +189,17 @@ public class ApplicationService
             "SELECT COUNT(*) FROM applications WHERE expulsion_conflict = TRUE AND status IN ('pending', 'pending_director', 'director_approved', 'approved')");
     }
 
+    public async Task RejectApprovedApplicationAsync(int id, string? reason, int specialistId)
+    {
+        using var conn = _db.Supabase();
+        await conn.ExecuteAsync(@"
+            UPDATE applications
+            SET status = 'rejected', rejection_reason = @reason,
+                reviewed_at = NOW(), reviewed_by = @specialistId
+            WHERE id = @id",
+            new { id, reason, specialistId });
+    }
+
     public async Task ScheduleRetakeAsync(int id, int specialistId)
     {
         using var conn = _db.Supabase();

@@ -1,14 +1,14 @@
 @page
 @model RetakePortal.Pages.OR.ExpelledStudentsModel
 @{
-    ViewData["Title"] = "Список отчисленных";
+    ViewData["Title"] = "Акты нарушений";
 }
 
-<h4 class="fw-bold mb-4">Отчисленные студенты</h4>
+<h4 class="fw-bold mb-4">Акты нарушений</h4>
 
 @if (!Model.Students.Any())
 {
-    <div class="text-center text-muted py-5">Список отчисленных пуст</div>
+    <div class="text-center text-muted py-5">Список актов пуст</div>
 }
 else
 {
