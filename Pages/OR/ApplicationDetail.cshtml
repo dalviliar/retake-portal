@@ -183,11 +183,6 @@
                 <input type="hidden" asp-for="AppId" />
                 @if (Model.App.ExpulsionConflict)
                 {
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Причина отклонения</label>
-                        <textarea asp-for="Reason" class="form-control form-control-sm" rows="2"
-                                  placeholder="Укажите причину (акт нарушения, дисциплина...)"></textarea>
-                    </div>
                     <div class="d-flex gap-2">
                         <button type="submit" name="decision" value="schedule" class="btn btn-success btn-sm">
                             &#x2713; Пересдача назначена

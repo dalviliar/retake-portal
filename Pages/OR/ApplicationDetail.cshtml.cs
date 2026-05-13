@@ -39,7 +39,7 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
 
         if (decision == "rejected" && App?.Status == "approved")
         {
-            await _apps.RejectApprovedApplicationAsync(AppId, Reason?.Trim(), SpecialistId);
+            await _apps.RejectApprovedApplicationAsync(AppId, "Акт нарушения", SpecialistId);
             return RedirectToPage("/OR/Dashboard");
         }
 
