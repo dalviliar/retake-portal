@@ -110,6 +110,25 @@
                             </tfoot>
                         </table>
 
+                        @if (app.Status == "approved")
+                        {
+                            @if (Model.RetakeSchedules.Any(s => app.Items.Any(i => i.DisciplineName == s.DisciplineName && s.ExamDate != null)))
+                            {
+                                <div class="alert alert-success py-2 mt-3 mb-0">
+                                    <strong>Расписание пересдачи назначено.</strong>
+                                    Дата и аудитория указаны в таблице выше.
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info py-2 mt-3 mb-0">
+                                    <strong>Заявление одобрено.</strong>
+                                    Пересдачи планируются <strong>28–29 мая 2026 года</strong>.
+                                    Точное расписание (дата, время, аудитория) будет доступно
+                                    с <strong>18 мая</strong> — следите за обновлениями на этой странице.
+                                </div>
+                            }
+                        }
                         @if (app.Status == "rejected" && !string.IsNullOrEmpty(app.RejectionReason))
                         {
                             <div class="alert alert-danger py-2 mt-2 mb-0">

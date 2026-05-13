@@ -117,8 +117,8 @@ LEFT JOIN Edu_Times te             ON te.ID   = exz.EndID
 LEFT JOIN Edu_Rooms aud            ON aud.ID  = exz.RoomID
 LEFT JOIN Edu_Buildings krp        ON krp.ID  = aud.BuildingID
 WHERE smc.SemesterID = $SEMESTER_ID
+  AND exz.IsRetakeExam = 1
   AND exz.ExamDate IS NOT NULL
-  AND exz.ExamDate >= CAST(GETDATE() AS DATE)
   AND u.IIN IS NOT NULL
 "@
 
