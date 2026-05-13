@@ -41,6 +41,22 @@ public class SsoService
         return (await conn.QueryAsync<Student>(sql, new { query = $"%{query.ToLower()}%" })).ToList();
     }
 
+    public async Task<List<Grade>> GetAllFailedGradesAsync(string iin)
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT
+                discipline_name  AS DisciplineName,
+                grade            AS GradeValue,
+                credits          AS Credits,
+                semester         AS Semester
+            FROM grades
+            WHERE student_iin = @iin
+              AND grade       IN ('FX', 'F', 'I')
+            ORDER BY discipline_name";
+        return (await conn.QueryAsync<Grade>(sql, new { iin })).ToList();
+    }
+
     public async Task<List<Grade>> GetFailedGradesAsync(string iin, string semester)
     {
         using var conn = _db.Supabase();

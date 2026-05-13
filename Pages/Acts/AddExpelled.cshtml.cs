@@ -9,13 +9,11 @@ public class AddExpelledModel : Pages.ActsSpecialistPageModel
 {
     private readonly ExpelledStudentService _expelled;
     private readonly SsoService _sso;
-    private readonly IConfiguration _config;
 
-    public AddExpelledModel(ExpelledStudentService expelled, SsoService sso, IConfiguration config)
+    public AddExpelledModel(ExpelledStudentService expelled, SsoService sso)
     {
         _expelled = expelled;
         _sso = sso;
-        _config = config;
     }
 
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
@@ -72,8 +70,7 @@ public class AddExpelledModel : Pages.ActsSpecialistPageModel
         FoundStudent = (StudentModel?)await _sso.GetStudentByIINAsync(iin);
         if (FoundStudent == null) { ErrorMessage = "Студент с таким ИИН не найден"; return; }
 
-        var semester = _config["CurrentSemester"] ?? "";
-        var grades = await _sso.GetFailedGradesAsync(iin, semester);
+        var grades = await _sso.GetAllFailedGradesAsync(iin);
         var alreadyExpelled = await _expelled.GetExpelledDisciplinesAsync(iin);
 
         AvailableDisciplines = grades
