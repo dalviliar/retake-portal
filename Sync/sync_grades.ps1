@@ -118,6 +118,7 @@ LEFT JOIN Edu_Rooms aud            ON aud.ID  = exz.RoomID
 LEFT JOIN Edu_Buildings krp        ON krp.ID  = aud.BuildingID
 WHERE smc.SemesterID = $SEMESTER_ID
   AND exz.ExamDate IS NOT NULL
+  AND exz.ExamDate >= CAST(GETDATE() AS DATE)
   AND u.IIN IS NOT NULL
 "@
 
