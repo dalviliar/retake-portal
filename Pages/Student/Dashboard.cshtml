@@ -76,7 +76,9 @@
                                         </td>
                                         <td class="text-center">@g.Credits</td>
                                         <td class="text-center">
-                                            @((g.Credits * Model.Student.CreditCost).ToString("N0")) тг
+                                            @(g.GradeValue == "FX"
+                                                ? Model.Student.CreditCost.ToString("N0") + " тг"
+                                                : "Бесплатно")
                                         </td>
                                         <td class="text-center">
                                             @if (g.IsExpelled)
