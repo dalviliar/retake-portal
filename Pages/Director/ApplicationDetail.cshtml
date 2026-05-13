@@ -89,8 +89,9 @@
             </li>
             @if (Model.App.ReviewedAt.HasValue && !string.IsNullOrEmpty(Model.App.ReviewedByName))
             {
+                var isDir = Model.App.ReviewedByRole == "director";
                 <li class="mb-2">
-                    <span class="badge bg-primary me-2">ОР</span>
+                    <span class="badge @(isDir ? "bg-dark" : "bg-primary") me-2">@(isDir ? "Директор" : "ОР")</span>
                     <span class="small fw-semibold">@Model.App.ReviewedByName</span>
                     <span class="text-muted small ms-2">@Model.App.ReviewedAt.Value.ToAlmaty()</span>
                 </li>

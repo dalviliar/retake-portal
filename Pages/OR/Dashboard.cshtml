@@ -130,6 +130,7 @@ else
                         <th class="text-center">Дисц.</th>
                         <th class="text-end">Сумма</th>
                         <th class="text-center">Статус</th>
+                        <th>Рассмотрел</th>
                         <th>Дата</th>
                         <th></th>
                     </tr>
@@ -151,6 +152,17 @@ else
                                 {
                                     <span class="badge bg-warning text-dark ms-1" title="Студент отчислён">⚠</span>
                                 }
+                            </td>
+                            <td class="small">
+                                @if (!string.IsNullOrEmpty(app.ReviewedByName))
+                                {
+                                    <span>@app.ReviewedByName</span>
+                                }
+                                else if (!string.IsNullOrEmpty(app.DirectorName))
+                                {
+                                    <span class="text-muted">@app.DirectorName</span>
+                                }
+                                else { <span class="text-muted">—</span> }
                             </td>
                             <td class="small text-muted">@app.SubmittedAt.ToAlmatyShort()</td>
                             <td>
