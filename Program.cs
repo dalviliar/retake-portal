@@ -29,7 +29,17 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler(exApp =>
+    {
+        exApp.Run(async ctx =>
+        {
+            ctx.Response.StatusCode = 500;
+            ctx.Response.ContentType = "text/plain; charset=utf-8";
+            var ex = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+            var msg = ex?.Error is null ? "Unknown error" : $"{ex.Error.GetType().Name}: {ex.Error.Message}\n{ex.Error.StackTrace}";
+            await ctx.Response.WriteAsync(msg);
+        });
+    });
     app.UseHsts();
 }
 
