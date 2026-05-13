@@ -25,7 +25,8 @@ public class ApplyModel : Pages.StudentPageModel
 
     public List<Grade> AvailableGrades { get; set; } = [];
     public decimal CreditCost { get; set; }
-    public string CostsJson => CreditCost.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    public string CostsJson => JsonSerializer.Serialize(
+        AvailableGrades.Select(g => g.GradeValue == "FX" ? CreditCost : 0m));
     public string GradesJson => JsonSerializer.Serialize(AvailableGrades.Select(g => g.GradeValue));
     public string CreditsJson => JsonSerializer.Serialize(AvailableGrades.Select(g => g.Credits));
     public string? ErrorMessage { get; set; }
@@ -55,8 +56,9 @@ public class ApplyModel : Pages.StudentPageModel
         var student = await _sso.GetStudentByIINAsync(StudentIIN);
         if (student == null) return RedirectToPage("/Student/Login");
 
+        // FX = 1 credit cost; F and I = free
         decimal total = selectedIndices.Sum(i =>
-            int.Parse(creditsArr[i]!) * student.CreditCost);
+            (gradeValues[i] ?? "FX") == "FX" ? student.CreditCost : 0m);
 
         var app = new Application
         {
@@ -76,26 +78,32 @@ public class ApplyModel : Pages.StudentPageModel
         {
             var grade = gradeValues[i] ?? "FX";
             var credits = int.Parse(creditsArr[i]!);
-            var costPer = student.CreditCost;
+            // FX = fixed 1 credit cost; F and I = free
+            var costPer = grade == "FX" ? student.CreditCost : 0m;
+            var totalCost = costPer;
 
             string? confUrl = null;
-            if (grade == "F")
+            string? receiptUrl = null;
+
+            if (grade is "F" or "I")
             {
                 var confFile = Request.Form.Files.GetFile($"confDoc_{i}");
                 confUrl = await _files.UploadAsync(confFile, "confirmation");
                 if (confUrl == null)
                 {
-                    ErrorMessage = $"Для дисциплины с оценкой F требуется подтверждающий документ";
+                    ErrorMessage = $"Для оценки {grade} необходим подтверждающий документ (справка)";
                     return Page();
                 }
             }
-
-            var receiptFile = Request.Form.Files.GetFile($"payReceipt_{i}");
-            var receiptUrl = await _files.UploadAsync(receiptFile, "receipts");
-            if (receiptUrl == null)
+            else // FX
             {
-                ErrorMessage = "Прикрепите чек об оплате";
-                return Page();
+                var receiptFile = Request.Form.Files.GetFile($"payReceipt_{i}");
+                receiptUrl = await _files.UploadAsync(receiptFile, "receipts");
+                if (receiptUrl == null)
+                {
+                    ErrorMessage = "Прикрепите чек об оплате";
+                    return Page();
+                }
             }
 
             await _apps.AddApplicationItemAsync(new ApplicationItem
@@ -105,7 +113,7 @@ public class ApplyModel : Pages.StudentPageModel
                 Grade = grade,
                 Credits = credits,
                 CostPerCredit = costPer,
-                TotalCost = credits * costPer,
+                TotalCost = totalCost,
                 ConfirmationDocumentUrl = confUrl,
                 PaymentReceiptUrl = receiptUrl
             });

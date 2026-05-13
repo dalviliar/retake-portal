@@ -26,14 +26,21 @@
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-body">
                         <p class="text-muted small mb-3">
-                            <strong>FX</strong> — прикрепите чек об оплате.<br />
-                            <strong>F</strong> — прикрепите подтверждающий документ (справка и т.д.) и чек об оплате.
+                            <strong>FX</strong> — оплата 1 кредит, прикрепите чек об оплате.<br />
+                            <strong>F</strong> — бесплатно, прикрепите подтверждающий документ (справка).<br />
+                            <strong>I</strong> — бесплатно, прикрепите подтверждающий документ (справка).
                         </p>
 
                         @for (int i = 0; i < Model.AvailableGrades.Count; i++)
                         {
                             var g = Model.AvailableGrades[i];
-                            var cost = g.Credits * Model.CreditCost;
+                            var isFree = g.GradeValue is "F" or "I";
+                            var costDisplay = isFree ? "Бесплатно" : $"{Model.CreditCost:N0} тг";
+                            var badgeClass = g.GradeValue switch {
+                                "F" => "bg-danger",
+                                "I" => "bg-info text-dark",
+                                _   => "bg-warning text-dark"
+                            };
                             <div class="border rounded p-3 mb-3 discipline-block" id="block-@i">
                                 <div class="form-check mb-2">
                                     <input class="form-check-input disc-check" type="checkbox"
@@ -41,31 +48,34 @@
                                            id="chk-@i" onchange="toggleUploads(@i)">
                                     <label class="form-check-label fw-semibold" for="chk-@i">
                                         @g.DisciplineName
-                                        <span class="badge @(g.GradeValue == "F" ? "bg-danger" : "bg-warning text-dark") ms-1">@g.GradeValue</span>
-                                        <span class="text-muted fw-normal ms-2">@g.Credits кр. &mdash; @cost.ToString("N0") тг</span>
+                                        <span class="badge @badgeClass ms-1">@g.GradeValue</span>
+                                        <span class="text-muted fw-normal ms-2">@costDisplay</span>
                                     </label>
                                 </div>
 
                                 <div id="uploads-@i" class="ps-4 upload-section" style="display:none">
-                                    @if (g.GradeValue == "F")
+                                    @if (g.GradeValue is "F" or "I")
                                     {
-                                        <div class="mb-2">
+                                        <div class="mb-0">
                                             <label class="form-label small fw-semibold text-danger">
-                                                Подтверждающий документ <span class="text-danger">*</span>
+                                                Подтверждающий документ (справка) <span class="text-danger">*</span>
                                             </label>
                                             <input type="file" name="confDoc_@i" class="form-control form-control-sm"
                                                    accept=".pdf,.jpg,.jpeg,.png" />
                                             <div class="form-text">PDF, JPG или PNG</div>
                                         </div>
                                     }
-                                    <div class="mb-0">
-                                        <label class="form-label small fw-semibold">
-                                            Чек об оплате <span class="text-danger">*</span>
-                                        </label>
-                                        <input type="file" name="payReceipt_@i" class="form-control form-control-sm"
-                                               accept=".pdf,.jpg,.jpeg,.png" />
-                                        <div class="form-text">PDF, JPG или PNG</div>
-                                    </div>
+                                    else
+                                    {
+                                        <div class="mb-0">
+                                            <label class="form-label small fw-semibold">
+                                                Чек об оплате <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="file" name="payReceipt_@i" class="form-control form-control-sm"
+                                                   accept=".pdf,.jpg,.jpeg,.png" />
+                                            <div class="form-text">PDF, JPG или PNG</div>
+                                        </div>
+                                    }
                                 </div>
 
                                 <input type="hidden" name="DisciplineNames" value="@g.DisciplineName" />
@@ -97,8 +107,6 @@
 @section Scripts {
 <script>
     const costs = @Html.Raw(Model.CostsJson);
-    const grades = @Html.Raw(Model.GradesJson);
-    const credits = @Html.Raw(Model.CreditsJson);
 
     function toggleUploads(i) {
         const checked = document.getElementById('chk-' + i).checked;
@@ -111,7 +119,7 @@
         let any = false;
         document.querySelectorAll('.disc-check:checked').forEach(cb => {
             const i = parseInt(cb.value);
-            total += credits[i] * costs;
+            total += costs[i];
             any = true;
         });
         document.getElementById('totalAmount').textContent = total.toLocaleString('ru-RU') + ' тг';

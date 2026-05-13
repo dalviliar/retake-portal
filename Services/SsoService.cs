@@ -39,6 +39,7 @@ public class SsoService
             FROM grades
             WHERE student_iin = @iin
               AND semester    = @semester
+              AND grade       IN ('FX', 'F', 'I')
             ORDER BY discipline_name";
         var rows = await conn.QueryAsync<Grade>(sql, new { iin, semester });
         return rows.ToList();

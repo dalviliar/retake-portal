@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using RetakePortal.Models;
 using RetakePortal.Services;
 
-namespace RetakePortal.Pages.OR;
+namespace RetakePortal.Pages.Director;
 
-public class ApplicationDetailModel : Pages.ORSpecialistPageModel
+public class DirectorApplicationDetailModel : RetakePortal.Pages.DirectorPageModel
 {
     private readonly ApplicationService _apps;
-    public ApplicationDetailModel(ApplicationService apps) => _apps = apps;
+    public DirectorApplicationDetailModel(ApplicationService apps) => _apps = apps;
 
     public Application? App { get; set; }
     [BindProperty] public int AppId { get; set; }
@@ -31,15 +31,8 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
             return Page();
         }
 
-        var status = decision switch
-        {
-            "send_to_director" => "pending_director",
-            "approved"         => "approved",
-            "rejected"         => "rejected",
-            _                  => "rejected"
-        };
-
+        var status = decision == "approved" ? "director_approved" : "rejected";
         await _apps.ReviewApplicationAsync(AppId, status, Reason?.Trim(), SpecialistId);
-        return RedirectToPage("/OR/Dashboard");
+        return RedirectToPage("/Director/Applications");
     }
 }

@@ -19,20 +19,26 @@ public class Application
 
     public List<ApplicationItem> Items { get; set; } = [];
 
+    public bool RequiresDirector => Items.Any(i => i.Grade is "F" or "I");
+
     public string StatusDisplay => Status switch
     {
-        "pending"  => "На рассмотрении",
-        "approved" => "Одобрено",
-        "rejected" => "Отклонено",
-        _          => Status
+        "pending"           => "На рассмотрении",
+        "pending_director"  => "У директора",
+        "director_approved" => "Одобрено директором",
+        "approved"          => "Одобрено",
+        "rejected"          => "Отклонено",
+        _                   => Status
     };
 
     public string StatusBadgeClass => Status switch
     {
-        "pending"  => "bg-warning text-dark",
-        "approved" => "bg-success",
-        "rejected" => "bg-danger",
-        _          => "bg-secondary"
+        "pending"           => "bg-warning text-dark",
+        "pending_director"  => "bg-info text-dark",
+        "director_approved" => "bg-primary",
+        "approved"          => "bg-success",
+        "rejected"          => "bg-danger",
+        _                   => "bg-secondary"
     };
 
     public string EducationLevelDisplay => EducationLevel switch

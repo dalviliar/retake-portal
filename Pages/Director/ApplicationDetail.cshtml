@@ -1,18 +1,16 @@
 @page "{id:int}"
-@model RetakePortal.Pages.OR.ApplicationDetailModel
-@{
-    ViewData["Title"] = $"Заявление №{Model.App?.Id}";
-}
+@model RetakePortal.Pages.Director.DirectorApplicationDetailModel
+@{ ViewData["Title"] = $"Заявление №{Model.App?.Id}"; Layout = "_Layout"; }
 
 @if (Model.App == null)
 {
     <div class="alert alert-danger">Заявление не найдено.</div>
-    <a asp-page="/OR/Dashboard" class="btn btn-outline-secondary btn-sm">← Назад</a>
+    <a asp-page="/Director/Applications" class="btn btn-outline-secondary btn-sm">← Назад</a>
     return;
 }
 
 <div class="mb-3">
-    <a asp-page="/OR/Dashboard" class="text-muted small">← Все заявления</a>
+    <a asp-page="/Director/Applications" class="text-muted small">← Заявления на согласование</a>
 </div>
 
 <div class="d-flex justify-content-between align-items-start mb-4">
@@ -49,7 +47,7 @@
                         <tr>
                             <th>Дисциплина</th>
                             <th class="text-center">Оценка</th>
-                            <th class="text-end">Сумма</th>
+                            <th>Документ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -61,72 +59,31 @@
                                 _   => "bg-warning text-dark"
                             };
                             <tr>
-                                <td>
-                                    @item.DisciplineName
-                                    <div class="mt-1">
-                                        @if (!string.IsNullOrEmpty(item.ConfirmationDocumentUrl))
-                                        {
-                                            <a href="@item.ConfirmationDocumentUrl" target="_blank" class="badge bg-secondary text-decoration-none me-1">
-                                                Справка
-                                            </a>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.PaymentReceiptUrl))
-                                        {
-                                            <a href="@item.PaymentReceiptUrl" target="_blank" class="badge bg-info text-decoration-none">
-                                                Чек
-                                            </a>
-                                        }
-                                    </div>
-                                </td>
+                                <td>@item.DisciplineName</td>
                                 <td class="text-center">
                                     <span class="badge @badgeClass">@item.Grade</span>
                                 </td>
-                                <td class="text-end">
-                                    @(item.TotalCost == 0 ? "Бесплатно" : item.TotalCost.ToString("N0") + " тг")
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.ConfirmationDocumentUrl))
+                                    {
+                                        <a href="@item.ConfirmationDocumentUrl" target="_blank"
+                                           class="badge bg-secondary text-decoration-none">Справка</a>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
-                    <tfoot>
-                        <tr class="fw-bold">
-                            <td colspan="2" class="text-end">Итого:</td>
-                            <td class="text-end">
-                                @(Model.App.TotalAmount == 0 ? "Бесплатно" : Model.App.TotalAmount.ToString("N0") + " тг")
-                            </td>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-@if (Model.App.Status == "rejected" && !string.IsNullOrEmpty(Model.App.RejectionReason))
-{
-    <div class="alert alert-danger mb-4">
-        <strong>Причина отклонения:</strong> @Model.App.RejectionReason
-    </div>
-}
-
 @if (Model.App.Status == "pending_director")
-{
-    <div class="alert alert-info mb-4">
-        <strong>Ожидает согласования директора.</strong> После решения директора заявление вернётся сюда.
-    </div>
-}
-
-@if (Model.App.Status == "director_approved")
-{
-    <div class="alert alert-primary mb-4">
-        <strong>Директор согласовал.</strong> Примите окончательное решение.
-    </div>
-}
-
-@if (Model.App.Status is "pending" or "director_approved")
 {
     <div class="card border-0 shadow-sm">
         <div class="card-body">
-            <h6 class="text-muted text-uppercase small mb-3">Принять решение</h6>
+            <h6 class="text-muted text-uppercase small mb-3">Решение директора</h6>
 
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))
             {
@@ -141,18 +98,9 @@
                               placeholder="Укажите причину отклонения..."></textarea>
                 </div>
                 <div class="d-flex gap-2">
-                    @if (Model.App.Status == "pending" && Model.App.RequiresDirector)
-                    {
-                        <button type="submit" name="decision" value="send_to_director" class="btn btn-primary">
-                            &#x2197; Отправить директору
-                        </button>
-                    }
-                    else
-                    {
-                        <button type="submit" name="decision" value="approved" class="btn btn-success">
-                            &#x2713; Одобрить
-                        </button>
-                    }
+                    <button type="submit" name="decision" value="approved" class="btn btn-success">
+                        &#x2713; Согласовать
+                    </button>
                     <button type="submit" name="decision" value="rejected" class="btn btn-danger">
                         &#x2715; Отклонить
                     </button>

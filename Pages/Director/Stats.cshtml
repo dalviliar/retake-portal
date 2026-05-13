@@ -7,9 +7,21 @@
         <h4 class="fw-bold mb-0">Статистика работы специалистов</h4>
         <p class="text-muted small mb-0">@Model.SpecName</p>
     </div>
-    <form method="post" asp-page-handler="Logout">
-        <button class="btn btn-outline-secondary btn-sm">Выйти</button>
-    </form>
+    <div class="d-flex gap-2">
+        <a asp-page="/Director/Applications" class="btn btn-primary btn-sm position-relative">
+            Заявления на согласование
+            @if (Model.PendingDirectorCount > 0)
+            {
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    @Model.PendingDirectorCount
+                </span>
+            }
+        </a>
+        <a asp-page="/Director/Report" class="btn btn-outline-success btn-sm">Отчёт (Excel)</a>
+        <form method="post" asp-page-handler="Logout">
+            <button class="btn btn-outline-secondary btn-sm">Выйти</button>
+        </form>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">

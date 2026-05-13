@@ -51,9 +51,9 @@ JOIN Edu_Students s          ON s.StudentID  = sc.StudentID
 JOIN Edu_Users u             ON u.ID         = s.StudentID
 JOIN Edu_SemesterCourses smc ON smc.ID       = sc.SemesterCourseID
 WHERE smc.SemesterID = $SEMESTER_ID
-  AND sc.LetterGrade IN ('FX', 'F')
+  AND sc.LetterGrade IN ('FX', 'F', 'I')
   AND (
-      sc.LetterGrade = 'FX'
+      sc.LetterGrade IN ('FX', 'I')
       OR (sc.LetterGrade = 'F' AND sc.ExamGrade > 0)
   )
   AND s.StatusID IS NOT NULL

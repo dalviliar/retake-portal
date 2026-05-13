@@ -4,21 +4,47 @@
     ViewData["Title"] = "Заявления — ОР";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold mb-0">Все заявления</h4>
-    <div class="d-flex gap-2">
-        @foreach (var tab in new[] { ("", "Все"), ("pending", "На рассмотрении"), ("approved", "Одобрено"), ("rejected", "Отклонено") })
+    <div class="d-flex gap-2 flex-wrap">
+        @foreach (var tab in new[] {
+            ("", "Все"),
+            ("pending", "На рассмотрении"),
+            ("pending_director", "У директора"),
+            ("director_approved", "Одобрено директором"),
+            ("approved", "Одобрено"),
+            ("rejected", "Отклонено")
+        })
         {
-            <a asp-page="/OR/Dashboard" asp-route-status="@tab.Item1"
+            <a asp-page="/OR/Dashboard" asp-route-status="@tab.Item1" asp-route-discipline="@Model.DisciplineFilter"
                class="btn btn-sm @(Model.StatusFilter == tab.Item1 ? "btn-primary" : "btn-outline-secondary")">
                 @tab.Item2
-                @if (tab.Item1 == "pending" && Model.PendingCount > 0)
+                @if (tab.Item1 == "" && Model.ActionRequiredCount > 0)
                 {
-                    <span class="badge bg-danger ms-1">@Model.PendingCount</span>
+                    <span class="badge bg-danger ms-1">@Model.ActionRequiredCount</span>
                 }
             </a>
         }
     </div>
+</div>
+
+<div class="mb-3">
+    <form method="get" class="d-flex gap-2 align-items-center">
+        <input type="hidden" name="status" value="@Model.StatusFilter" />
+        <select name="discipline" class="form-select form-select-sm" style="max-width:400px"
+                onchange="this.form.submit()">
+            <option value="">— Все дисциплины —</option>
+            @foreach (var d in Model.AllDisciplines)
+            {
+                <option value="@d" selected="@(Model.DisciplineFilter == d)">@d</option>
+            }
+        </select>
+        @if (!string.IsNullOrEmpty(Model.DisciplineFilter))
+        {
+            <a asp-page="/OR/Dashboard" asp-route-status="@Model.StatusFilter"
+               class="btn btn-sm btn-outline-secondary">✕ Сбросить</a>
+        }
+    </form>
 </div>
 
 @if (!Model.Applications.Any())
@@ -35,7 +61,7 @@ else
                         <th>№</th>
                         <th>ИИН</th>
                         <th>Студент</th>
-                        <th>Специальность</th>
+                        <th>Институт</th>
                         <th class="text-center">Курс</th>
                         <th class="text-center">Дисц.</th>
                         <th class="text-end">Сумма</th>
@@ -51,7 +77,7 @@ else
                             <td class="text-muted small">#@app.Id</td>
                             <td class="font-monospace small">@app.IIN</td>
                             <td>@app.StudentFullName</td>
-                            <td class="small text-muted">@app.Specialty</td>
+                            <td class="small text-muted">@app.Institute</td>
                             <td class="text-center">@app.Course</td>
                             <td class="text-center">@app.Items.Count</td>
                             <td class="text-end fw-semibold">@app.TotalAmount.ToString("N0") тг</td>

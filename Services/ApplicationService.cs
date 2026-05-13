@@ -114,6 +114,46 @@ public class ApplicationService
         await conn.ExecuteAsync(sql, new { id, status, rejectionReason, reviewedBy });
     }
 
+    public async Task<List<Application>> GetApplicationsForDirectorAsync()
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT id, iin, student_full_name AS StudentFullName, specialty, institute, department,
+                   course, education_level AS EducationLevel, status,
+                   rejection_reason AS RejectionReason, total_amount AS TotalAmount,
+                   submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy
+            FROM applications WHERE status = 'pending_director' ORDER BY submitted_at";
+        var apps = (await conn.QueryAsync<Application>(sql)).ToList();
+        foreach (var app in apps)
+            app.Items = await GetItemsAsync(conn, app.Id);
+        return apps;
+    }
+
+    public async Task<List<ReportRow>> GetReportDataAsync()
+    {
+        using var conn = _db.Supabase();
+        const string sql = @"
+            SELECT a.institute AS Institute,
+                   a.student_full_name AS StudentFullName,
+                   a.iin AS IIN,
+                   a.course AS Course,
+                   COUNT(ai.id) AS DisciplineCount
+            FROM applications a
+            JOIN application_items ai ON ai.application_id = a.id
+            WHERE a.status != 'rejected'
+            GROUP BY a.institute, a.student_full_name, a.iin, a.course
+            ORDER BY a.institute, a.student_full_name";
+        return (await conn.QueryAsync<ReportRow>(sql)).ToList();
+    }
+
+    public async Task<List<string>> GetAllDisciplineNamesAsync()
+    {
+        using var conn = _db.Supabase();
+        var rows = await conn.QueryAsync<string>(
+            "SELECT DISTINCT discipline_name FROM application_items ORDER BY discipline_name");
+        return rows.ToList();
+    }
+
     private static async Task<List<ApplicationItem>> GetItemsAsync(NpgsqlConnection conn, int appId)
     {
         const string sql = @"
@@ -124,4 +164,13 @@ public class ApplicationService
             FROM application_items WHERE application_id = @appId ORDER BY id";
         return (await conn.QueryAsync<ApplicationItem>(sql, new { appId })).ToList();
     }
+}
+
+public class ReportRow
+{
+    public string Institute { get; set; } = string.Empty;
+    public string StudentFullName { get; set; } = string.Empty;
+    public string IIN { get; set; } = string.Empty;
+    public int Course { get; set; }
+    public int DisciplineCount { get; set; }
 }
