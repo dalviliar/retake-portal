@@ -11,7 +11,17 @@
 
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" asp-page="/Index">
+        @{
+            var brandPage = "/Staff";
+            var _sIIN  = Context.Session.GetString("StudentIIN");
+            var _sRole = Context.Session.GetString("SpecRole");
+            if (_sIIN  != null) brandPage = "/Student/Dashboard";
+            else if (_sRole == "or_specialist")   brandPage = "/OR/Dashboard";
+            else if (_sRole == "acts_specialist") brandPage = "/Acts/Dashboard";
+            else if (_sRole == "director")        brandPage = "/Director/Stats";
+            else if (_sRole == "admin")           brandPage = "/Admin/Specialists";
+        }
+        <a class="navbar-brand fw-bold" asp-page="@brandPage">
             RetakePortal &mdash; Офис Регистратора
         </a>
         <div class="navbar-collapse">
