@@ -19,6 +19,7 @@ public class Application
     public bool ExpulsionConflict { get; set; }
     public DateTime? DirectorReviewedAt { get; set; }
     public int? DirectorReviewedBy { get; set; }
+    public string? DirectorName { get; set; }
 
     public List<ApplicationItem> Items { get; set; } = [];
 

@@ -13,7 +13,7 @@ public class DirectorHistoryModel : Pages.DirectorPageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        Applications = await _apps.GetDirectorHistoryAsync(SpecialistId);
+        Applications = await _apps.GetAllDirectorHistoryAsync();
         return Page();
     }
 }

@@ -12,7 +12,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public List<Application> Applications { get; set; } = [];
     public List<string> AllDisciplines { get; set; } = [];
     public string StatusFilter { get; set; } = "";
-    public string DisciplineFilter { get; set; } = "";
+    public List<string> DisciplineFilters { get; set; } = [];
     public int ActionRequiredCount { get; set; }
     public int ExpulsionConflictCount { get; set; }
     public int CurrentPage { get; set; } = 1;
@@ -20,10 +20,10 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public int TotalCount { get; set; }
     private const int PageSize = 50;
 
-    public async Task<IActionResult> OnGetAsync(string? status, string? discipline, int page = 1)
+    public async Task<IActionResult> OnGetAsync(string? status, List<string>? disciplines, int page = 1)
     {
         StatusFilter = status ?? "";
-        DisciplineFilter = discipline ?? "";
+        DisciplineFilters = disciplines ?? [];
         CurrentPage = Math.Max(1, page);
 
         AllDisciplines = await _apps.GetAllDisciplineNamesAsync();
@@ -31,7 +31,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
         ExpulsionConflictCount = await _apps.GetExpulsionConflictCountAsync();
 
         var (items, total) = await _apps.GetApplicationsPagedAsync(
-            StatusFilter, DisciplineFilter, CurrentPage, PageSize);
+            StatusFilter, DisciplineFilters.ToArray(), CurrentPage, PageSize);
 
         Applications = items;
         TotalCount = total;

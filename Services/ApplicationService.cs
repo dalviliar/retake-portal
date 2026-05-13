@@ -128,13 +128,22 @@ public class ApplicationService
         await conn.ExecuteAsync(sql, new { id, status, rejectionReason, directorId });
     }
 
-    public async Task<List<Application>> GetDirectorHistoryAsync(int directorId)
+    public async Task<List<Application>> GetAllDirectorHistoryAsync()
     {
         using var conn = _db.Supabase();
-        var sql = $@"SELECT {AppSelectCols} FROM applications
-            WHERE director_reviewed_by = @directorId
-            ORDER BY director_reviewed_at DESC";
-        var apps = (await conn.QueryAsync<Application>(sql, new { directorId })).ToList();
+        var sql = $@"
+            SELECT a.id, a.iin, a.student_full_name AS StudentFullName, a.specialty,
+                   a.institute, a.department, a.course, a.education_level AS EducationLevel,
+                   a.status, a.rejection_reason AS RejectionReason, a.total_amount AS TotalAmount,
+                   a.submitted_at AS SubmittedAt, a.reviewed_at AS ReviewedAt, a.reviewed_by AS ReviewedBy,
+                   a.expulsion_conflict AS ExpulsionConflict,
+                   a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
+                   COALESCE(s.full_name, '') AS DirectorName
+            FROM applications a
+            LEFT JOIN specialists s ON s.id = a.director_reviewed_by
+            WHERE a.director_reviewed_by IS NOT NULL
+            ORDER BY a.director_reviewed_at DESC";
+        var apps = (await conn.QueryAsync<Application>(sql)).ToList();
         foreach (var app in apps)
             app.Items = await GetItemsAsync(conn, app.Id);
         return apps;
@@ -172,7 +181,7 @@ public class ApplicationService
     }
 
     public async Task<(List<Application> Items, int Total)> GetApplicationsPagedAsync(
-        string status, string discipline, int page, int pageSize)
+        string status, string[] disciplines, int page, int pageSize)
     {
         using var conn = _db.Supabase();
         var conditions = new List<string>();
@@ -183,10 +192,10 @@ public class ApplicationService
             conditions.Add("a.status = @status");
             p.Add("status", status);
         }
-        if (!string.IsNullOrEmpty(discipline))
+        if (disciplines.Length > 0)
         {
-            conditions.Add("EXISTS (SELECT 1 FROM application_items ai WHERE ai.application_id = a.id AND ai.discipline_name = @discipline)");
-            p.Add("discipline", discipline);
+            conditions.Add("EXISTS (SELECT 1 FROM application_items ai WHERE ai.application_id = a.id AND ai.discipline_name = ANY(@disciplines))");
+            p.Add("disciplines", disciplines);
         }
 
         var where = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";

@@ -15,6 +15,9 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold mb-0">Все заявления</h4>
     <div class="d-flex gap-2 flex-wrap">
+        @{
+            var _discParams = string.Join("", Model.DisciplineFilters.Select(d => $"&disciplines={Uri.EscapeDataString(d)}"));
+        }
         @foreach (var tab in new[] {
             ("", "Все"),
             ("pending", "На рассмотрении"),
@@ -24,7 +27,7 @@
             ("rejected", "Отклонено")
         })
         {
-            <a asp-page="/OR/Dashboard" asp-route-status="@tab.Item1" asp-route-discipline="@Model.DisciplineFilter"
+            <a href="/OR/Dashboard?status=@tab.Item1@_discParams"
                class="btn btn-sm @(Model.StatusFilter == tab.Item1 ? "btn-primary" : "btn-outline-secondary")">
                 @tab.Item2
                 @if (tab.Item1 == "" && Model.ActionRequiredCount > 0)
@@ -37,23 +40,61 @@
 </div>
 
 <div class="mb-3">
-    <form method="get" class="d-flex gap-2 align-items-center">
+    <form method="get" id="filterForm">
         <input type="hidden" name="status" value="@Model.StatusFilter" />
-        <select name="discipline" class="form-select form-select-sm" style="max-width:400px"
-                onchange="this.form.submit()">
-            <option value="">— Все дисциплины —</option>
-            @foreach (var d in Model.AllDisciplines)
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    Дисциплины
+                    @if (Model.DisciplineFilters.Any())
+                    {
+                        <span class="badge bg-primary ms-1">@Model.DisciplineFilters.Count</span>
+                    }
+                </button>
+                <div class="dropdown-menu p-2 shadow" style="min-width:420px; max-width:500px">
+                    <input type="text" id="discSearch" class="form-control form-control-sm mb-2"
+                           placeholder="Поиск по названию..." autocomplete="off" />
+                    <div id="discList" style="max-height:320px; overflow-y:auto">
+                        @foreach (var d in Model.AllDisciplines)
+                        {
+                            var checkId = $"dc_{Math.Abs(d.GetHashCode())}";
+                            <div class="form-check disc-item px-2 py-1">
+                                <input class="form-check-input" type="checkbox"
+                                       name="disciplines" value="@d" id="@checkId"
+                                       @(Model.DisciplineFilters.Contains(d) ? "checked" : "") />
+                                <label class="form-check-label small" for="@checkId">@d</label>
+                            </div>
+                        }
+                    </div>
+                    <div class="border-top mt-2 pt-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">Применить</button>
+                        <a asp-page="/OR/Dashboard" asp-route-status="@Model.StatusFilter"
+                           class="btn btn-sm btn-outline-secondary">Сбросить</a>
+                    </div>
+                </div>
+            </div>
+            @if (Model.DisciplineFilters.Any())
             {
-                <option value="@d" selected="@(Model.DisciplineFilter == d)">@d</option>
+                <span class="text-muted small">
+                    Выбрано: @string.Join(", ", Model.DisciplineFilters.Select(d => d.Length > 40 ? d[..40] + "…" : d))
+                </span>
             }
-        </select>
-        @if (!string.IsNullOrEmpty(Model.DisciplineFilter))
-        {
-            <a asp-page="/OR/Dashboard" asp-route-status="@Model.StatusFilter"
-               class="btn btn-sm btn-outline-secondary">✕ Сбросить</a>
-        }
+        </div>
     </form>
 </div>
+
+@section Scripts {
+<script>
+    document.getElementById('discSearch').addEventListener('input', function () {
+        var q = this.value.toLowerCase();
+        document.querySelectorAll('.disc-item').forEach(function (el) {
+            var label = el.querySelector('label').textContent.toLowerCase();
+            el.style.display = label.includes(q) ? '' : 'none';
+        });
+    });
+</script>
+}
 
 <div class="d-flex justify-content-between align-items-center mb-2">
     <small class="text-muted">
@@ -122,28 +163,23 @@ else
 
     @if (Model.TotalPages > 1)
     {
+        @{
+            var discParams = string.Join("", Model.DisciplineFilters.Select(d => $"&disciplines={Uri.EscapeDataString(d)}"));
+            string PageUrl(int p) => $"/OR/Dashboard?status={Uri.EscapeDataString(Model.StatusFilter)}{discParams}&page={p}";
+        }
         <nav class="mt-3">
             <ul class="pagination pagination-sm justify-content-center flex-wrap mb-0">
                 <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-page="/OR/Dashboard"
-                       asp-route-status="@Model.StatusFilter"
-                       asp-route-discipline="@Model.DisciplineFilter"
-                       asp-route-page="@(Model.CurrentPage - 1)">‹</a>
+                    <a class="page-link" href="@PageUrl(Model.CurrentPage - 1)">‹</a>
                 </li>
                 @for (int i = Math.Max(1, Model.CurrentPage - 3); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 3); i++)
                 {
                     <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                        <a class="page-link" asp-page="/OR/Dashboard"
-                           asp-route-status="@Model.StatusFilter"
-                           asp-route-discipline="@Model.DisciplineFilter"
-                           asp-route-page="@i">@i</a>
+                        <a class="page-link" href="@PageUrl(i)">@i</a>
                     </li>
                 }
                 <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
-                    <a class="page-link" asp-page="/OR/Dashboard"
-                       asp-route-status="@Model.StatusFilter"
-                       asp-route-discipline="@Model.DisciplineFilter"
-                       asp-route-page="@(Model.CurrentPage + 1)">›</a>
+                    <a class="page-link" href="@PageUrl(Model.CurrentPage + 1)">›</a>
                 </li>
             </ul>
         </nav>

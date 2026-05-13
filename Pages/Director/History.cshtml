@@ -4,11 +4,11 @@
     ViewData["Title"] = "История решений";
 }
 
-<h4 class="fw-bold mb-4">История рассмотренных заявлений</h4>
+<h4 class="fw-bold mb-4">История решений директоров</h4>
 
 @if (!Model.Applications.Any())
 {
-    <div class="text-center text-muted py-5">Вы ещё не рассмотрели ни одного заявления</div>
+    <div class="text-center text-muted py-5">Решений ещё не принималось</div>
 }
 else
 {
@@ -23,6 +23,7 @@ else
                         <th>Институт</th>
                         <th class="text-center">Дисц.</th>
                         <th class="text-center">Решение</th>
+                        <th>Директор</th>
                         <th>Дата решения</th>
                     </tr>
                 </thead>
@@ -38,9 +39,10 @@ else
                             <td class="text-center">
                                 <span class="badge @app.StatusBadgeClass">@app.StatusDisplay</span>
                             </td>
+                            <td class="small">@app.DirectorName</td>
                             <td class="small text-muted">
                                 @(app.DirectorReviewedAt.HasValue
-                                    ? app.DirectorReviewedAt.Value.ToAlmatyShort()
+                                    ? app.DirectorReviewedAt.Value.ToAlmaty()
                                     : "—")
                             </td>
                         </tr>
