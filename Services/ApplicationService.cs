@@ -14,7 +14,8 @@ public class ApplicationService
     {
         using var conn = _db.Supabase();
         var count = await conn.ExecuteScalarAsync<int>(
-            "SELECT COUNT(1) FROM applications WHERE iin = @iin AND status = 'pending'",
+            @"SELECT COUNT(1) FROM applications WHERE iin = @iin
+              AND status IN ('pending','pending_director','director_approved','pending_payment','payment_submitted','approved')",
             new { iin });
         return count > 0;
     }
@@ -130,7 +131,8 @@ public class ApplicationService
             SELECT DISTINCT ai.discipline_name
             FROM application_items ai
             JOIN applications a ON a.id = ai.application_id
-            WHERE a.iin = @iin AND a.status IN ('pending', 'approved')";
+            WHERE a.iin = @iin
+              AND a.status IN ('pending','pending_director','director_approved','pending_payment','payment_submitted','approved')";
         var result = await conn.QueryAsync<string>(sql, new { iin });
         return result.ToHashSet();
     }
