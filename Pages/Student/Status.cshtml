@@ -230,6 +230,7 @@
                             }
                             <form method="post" enctype="multipart/form-data">
                                 <input type="hidden" name="AppId" value="@app.Id" />
+                                <input type="hidden" name="iinInput" value="@Model.IINInput" />
                                 @{ int receiptIdx = 0; }
                                 @foreach (var item in app.Items)
                                 {

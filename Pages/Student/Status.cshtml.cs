@@ -47,12 +47,14 @@ public class StatusModel : PageModel
     public async Task<IActionResult> OnPostAsync(int appId)
     {
         var sessionIIN = HttpContext.Session.GetString(Pages.SessionKeys.StudentIIN);
-        IINInput = sessionIIN;
+        var formIIN = Request.Form["iinInput"].ToString();
+        var effectiveIIN = !string.IsNullOrEmpty(sessionIIN) ? sessionIIN : formIIN;
+        IINInput = effectiveIIN;
         Searched = true;
 
         var app = await _apps.GetApplicationByIdAsync(appId);
-        if (app == null || app.IIN != sessionIIN || app.Status != "pending_payment")
-            return RedirectToPage(new { iin = sessionIIN });
+        if (app == null || app.IIN != effectiveIIN || app.Status != "pending_payment")
+            return RedirectToPage(new { iin = effectiveIIN });
 
         var disciplineNames = Request.Form["disciplineNames"].ToArray();
         bool anyUploaded = false;
@@ -72,12 +74,12 @@ public class StatusModel : PageModel
 
         if (!anyUploaded)
         {
-            Applications = await _apps.GetApplicationsByIINAsync(IINInput!);
+            Applications = await _apps.GetApplicationsByIINAsync(effectiveIIN);
             PaymentError = "Прикрепите хотя бы один чек об оплате";
             return Page();
         }
 
         await _apps.SetPaymentSubmittedAsync(appId);
-        return RedirectToPage(new { iin = sessionIIN });
+        return RedirectToPage(new { iin = effectiveIIN });
     }
 }
