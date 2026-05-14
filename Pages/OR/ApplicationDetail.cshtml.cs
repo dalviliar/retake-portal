@@ -34,6 +34,7 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
         if (decision == "verify_payment")
         {
             await _apps.ReviewApplicationAsync(AppId, "approved", null, SpecialistId);
+            await _apps.ScheduleRetakeAsync(AppId, SpecialistId);
             return RedirectToPage("/OR/ApplicationDetail", new { id = AppId });
         }
 
