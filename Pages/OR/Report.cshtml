@@ -38,6 +38,7 @@ else
                             <th>ИИН</th>
                             <th class="text-center">Курс</th>
                             <th class="text-center">Дисциплин</th>
+                            <th class="text-center">Оплата</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,6 +51,16 @@ else
                                 <td class="font-monospace small">@row.IIN</td>
                                 <td class="text-center">@row.Course</td>
                                 <td class="text-center fw-semibold">@row.DisciplineCount</td>
+                                <td class="text-center">
+                                    @if (row.PaymentType == "paid")
+                                    {
+                                        <span class="badge bg-warning text-dark">Платно</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Бесплатно</span>
+                                    }
+                                </td>
                             </tr>
                             num++;
                         }

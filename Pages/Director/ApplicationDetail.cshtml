@@ -130,6 +130,26 @@
 
             <form method="post">
                 <input type="hidden" asp-for="AppId" />
+
+                @if (Model.App.RequiresDirector)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Тип оплаты пересдачи</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="PaymentType"
+                                       id="pt_free" value="free" checked />
+                                <label class="form-check-label" for="pt_free">Бесплатно</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="PaymentType"
+                                       id="pt_paid" value="paid" />
+                                <label class="form-check-label" for="pt_paid">Платно</label>
+                            </div>
+                        </div>
+                    </div>
+                }
+
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Причина (обязательна при отклонении)</label>
                     <textarea asp-for="Reason" class="form-control" rows="3"

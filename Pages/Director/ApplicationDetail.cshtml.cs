@@ -12,6 +12,7 @@ public class DirectorApplicationDetailModel : RetakePortal.Pages.DirectorPageMod
     public Application? App { get; set; }
     [BindProperty] public int AppId { get; set; }
     [BindProperty] public string? Reason { get; set; }
+    [BindProperty] public string PaymentType { get; set; } = "free";
     public string? ErrorMessage { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
@@ -31,8 +32,29 @@ public class DirectorApplicationDetailModel : RetakePortal.Pages.DirectorPageMod
             return Page();
         }
 
-        var status = decision == "approved" ? "director_approved" : "rejected";
-        await _apps.DirectorReviewApplicationAsync(AppId, status, Reason?.Trim(), SpecialistId);
+        if (decision == "approved")
+        {
+            bool requiresDirector = App?.RequiresDirector ?? false;
+            string status;
+            string? paymentType = null;
+
+            if (requiresDirector)
+            {
+                paymentType = PaymentType == "paid" ? "paid" : "free";
+                status = paymentType == "paid" ? "pending_payment" : "director_approved";
+            }
+            else
+            {
+                status = "director_approved";
+            }
+
+            await _apps.DirectorReviewApplicationAsync(AppId, status, null, SpecialistId, paymentType);
+        }
+        else
+        {
+            await _apps.DirectorReviewApplicationAsync(AppId, "rejected", Reason?.Trim(), SpecialistId);
+        }
+
         return RedirectToPage("/Director/Applications");
     }
 }

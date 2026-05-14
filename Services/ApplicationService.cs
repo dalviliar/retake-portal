@@ -19,18 +19,22 @@ public class ApplicationService
         return count > 0;
     }
 
-    public async Task<int> CreateApplicationAsync(Application app)
+    public async Task<int> CreateApplicationAsync(Application app, string initialStatus = "pending")
     {
         using var conn = _db.Supabase();
         const string sql = @"
             INSERT INTO applications
                 (iin, student_full_name, specialty, institute, department,
-                 course, education_level, total_amount)
+                 course, education_level, total_amount, status)
             VALUES
                 (@IIN, @StudentFullName, @Specialty, @Institute, @Department,
-                 @Course, @EducationLevel, @TotalAmount)
+                 @Course, @EducationLevel, @TotalAmount, @initialStatus)
             RETURNING id";
-        return await conn.ExecuteScalarAsync<int>(sql, app);
+        return await conn.ExecuteScalarAsync<int>(sql, new
+        {
+            app.IIN, app.StudentFullName, app.Specialty, app.Institute, app.Department,
+            app.Course, app.EducationLevel, app.TotalAmount, initialStatus
+        });
     }
 
     public async Task AddApplicationItemAsync(ApplicationItem item)
@@ -53,7 +57,8 @@ public class ApplicationService
             submitted_at AS SubmittedAt, reviewed_at AS ReviewedAt, reviewed_by AS ReviewedBy,
             expulsion_conflict AS ExpulsionConflict,
             director_reviewed_at AS DirectorReviewedAt, director_reviewed_by AS DirectorReviewedBy,
-            scheduled_by AS ScheduledBy, scheduled_at AS ScheduledAt";
+            scheduled_by AS ScheduledBy, scheduled_at AS ScheduledAt,
+            payment_type AS PaymentType";
 
     public async Task<List<Application>> GetAllApplicationsAsync()
     {
@@ -66,6 +71,7 @@ public class ApplicationService
                    a.expulsion_conflict AS ExpulsionConflict,
                    a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
                    a.scheduled_by AS ScheduledBy, a.scheduled_at AS ScheduledAt,
+                   a.payment_type AS PaymentType,
                    COALESCE(sp_or.full_name, '')    AS ReviewedByName,
                    COALESCE(sp_dir.full_name, '')   AS DirectorName,
                    COALESCE(sp_sch.full_name, '')   AS ScheduledByName
@@ -94,6 +100,7 @@ public class ApplicationService
                    COALESCE(sp_dir.full_name, '')  AS DirectorName,
                    COALESCE(sp_sch.full_name, '')  AS ScheduledByName,
                    a.scheduled_by AS ScheduledBy, a.scheduled_at AS ScheduledAt,
+                   a.payment_type AS PaymentType,
                    sp_or.role AS ReviewedByRole
             FROM applications a
             LEFT JOIN specialists sp_or  ON sp_or.id  = a.reviewed_by
@@ -149,15 +156,34 @@ public class ApplicationService
         return apps;
     }
 
-    public async Task DirectorReviewApplicationAsync(int id, string status, string? rejectionReason, int directorId)
+    public async Task DirectorReviewApplicationAsync(int id, string status, string? rejectionReason, int directorId, string? paymentType = null)
     {
         using var conn = _db.Supabase();
         const string sql = @"
             UPDATE applications
             SET status = @status, rejection_reason = @rejectionReason,
-                director_reviewed_at = NOW(), director_reviewed_by = @directorId
+                director_reviewed_at = NOW(), director_reviewed_by = @directorId,
+                payment_type = @paymentType
             WHERE id = @id";
-        await conn.ExecuteAsync(sql, new { id, status, rejectionReason, directorId });
+        await conn.ExecuteAsync(sql, new { id, status, rejectionReason, directorId, paymentType });
+    }
+
+    public async Task SubmitPaymentReceiptAsync(int id, string disciplineName, string receiptUrl)
+    {
+        using var conn = _db.Supabase();
+        await conn.ExecuteAsync(@"
+            UPDATE application_items
+            SET payment_receipt_url = @receiptUrl
+            WHERE application_id = @id AND discipline_name = @disciplineName",
+            new { id, disciplineName, receiptUrl });
+    }
+
+    public async Task SetPaymentSubmittedAsync(int id)
+    {
+        using var conn = _db.Supabase();
+        await conn.ExecuteAsync(
+            "UPDATE applications SET status = 'payment_submitted' WHERE id = @id",
+            new { id });
     }
 
     public async Task<List<Application>> GetAllDirectorHistoryAsync()
@@ -216,11 +242,12 @@ public class ApplicationService
                    a.student_full_name AS StudentFullName,
                    a.iin AS IIN,
                    a.course AS Course,
-                   COUNT(ai.id) AS DisciplineCount
+                   COUNT(ai.id) AS DisciplineCount,
+                   COALESCE(a.payment_type, 'free') AS PaymentType
             FROM applications a
             JOIN application_items ai ON ai.application_id = a.id
             WHERE a.status != 'rejected'
-            GROUP BY a.institute, a.student_full_name, a.iin, a.course
+            GROUP BY a.institute, a.student_full_name, a.iin, a.course, a.payment_type
             ORDER BY a.institute, a.student_full_name";
         return (await conn.QueryAsync<ReportRow>(sql)).ToList();
     }
@@ -266,6 +293,7 @@ public class ApplicationService
                    a.expulsion_conflict AS ExpulsionConflict,
                    a.director_reviewed_at AS DirectorReviewedAt, a.director_reviewed_by AS DirectorReviewedBy,
                    a.scheduled_by AS ScheduledBy, a.scheduled_at AS ScheduledAt,
+                   a.payment_type AS PaymentType,
                    COALESCE(sp_or.full_name, '')   AS ReviewedByName,
                    COALESCE(sp_dir.full_name, '')  AS DirectorName,
                    COALESCE(sp_sch.full_name, '')  AS ScheduledByName
@@ -321,4 +349,6 @@ public class ReportRow
     public string IIN { get; set; } = string.Empty;
     public int Course { get; set; }
     public int DisciplineCount { get; set; }
+    public string PaymentType { get; set; } = "free";
+    public string PaymentDisplay => PaymentType == "paid" ? "Платно" : "Бесплатно";
 }

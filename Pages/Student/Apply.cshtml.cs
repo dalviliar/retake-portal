@@ -26,7 +26,7 @@ public class ApplyModel : Pages.StudentPageModel
     public List<Grade> AvailableGrades { get; set; } = [];
     public decimal CreditCost { get; set; }
     public string CostsJson => JsonSerializer.Serialize(
-        AvailableGrades.Select(g => g.GradeValue == "FX" ? CreditCost : 0m));
+        AvailableGrades.Select(g => g.GradeValue == "FX" ? (double)CreditCost : 0.0));
     public string GradesJson => JsonSerializer.Serialize(AvailableGrades.Select(g => g.GradeValue));
     public string CreditsJson => JsonSerializer.Serialize(AvailableGrades.Select(g => g.Credits));
     public string? ErrorMessage { get; set; }
@@ -56,9 +56,13 @@ public class ApplyModel : Pages.StudentPageModel
         var student = await _sso.GetStudentByIINAsync(StudentIIN);
         if (student == null) return RedirectToPage("/Student/Login");
 
-        // FX = 1 credit cost; F and I = free
+        // FX = 1 credit cost; F and I = cost determined by director later
         decimal total = selectedIndices.Sum(i =>
             (gradeValues[i] ?? "FX") == "FX" ? student.CreditCost : 0m);
+
+        // F/I → auto-route to director; FX → OR specialist first
+        bool hasDirectorGrades = selectedIndices.Any(i => (gradeValues[i] ?? "FX") is "F" or "I");
+        string initialStatus = hasDirectorGrades ? "pending_director" : "pending";
 
         var app = new Application
         {
@@ -72,21 +76,20 @@ public class ApplyModel : Pages.StudentPageModel
             TotalAmount = total
         };
 
-        int appId = await _apps.CreateApplicationAsync(app);
+        int appId = await _apps.CreateApplicationAsync(app, initialStatus);
 
         foreach (var i in selectedIndices)
         {
             var grade = gradeValues[i] ?? "FX";
             var credits = int.Parse(creditsArr[i]!);
-            // FX = fixed 1 credit cost; F and I = free
             var costPer = grade == "FX" ? student.CreditCost : 0m;
-            var totalCost = costPer;
 
             string? confUrl = null;
             string? receiptUrl = null;
 
             if (grade is "F" or "I")
             {
+                // Only confirmation document at submission; payment receipt uploaded later if required
                 var confFile = Request.Form.Files.GetFile($"confDoc_{i}");
                 confUrl = await _files.UploadAsync(confFile, "confirmation");
                 if (confUrl == null)
@@ -113,7 +116,7 @@ public class ApplyModel : Pages.StudentPageModel
                 Grade = grade,
                 Credits = credits,
                 CostPerCredit = costPer,
-                TotalCost = totalCost,
+                TotalCost = costPer,
                 ConfirmationDocumentUrl = confUrl,
                 PaymentReceiptUrl = receiptUrl
             });

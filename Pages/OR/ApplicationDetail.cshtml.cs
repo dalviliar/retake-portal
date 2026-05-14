@@ -31,6 +31,12 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
             return RedirectToPage("/OR/ApplicationDetail", new { id = AppId });
         }
 
+        if (decision == "verify_payment")
+        {
+            await _apps.ReviewApplicationAsync(AppId, "approved", null, SpecialistId);
+            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId });
+        }
+
         if (decision == "rejected" && string.IsNullOrWhiteSpace(Reason))
         {
             ErrorMessage = "При отклонении необходимо указать причину";

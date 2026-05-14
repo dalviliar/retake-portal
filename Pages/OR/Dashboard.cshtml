@@ -23,6 +23,8 @@
             ("pending", "На рассмотрении"),
             ("pending_director", "У директора"),
             ("director_approved", "Одобрено директором"),
+            ("pending_payment", "Ожидает оплаты"),
+            ("payment_submitted", "Оплата на проверке"),
             ("approved", "Одобрено"),
             ("rejected", "Отклонено")
         })
@@ -43,6 +45,36 @@
     <form method="get" id="filterForm">
         <input type="hidden" name="status" value="@Model.StatusFilter" />
         <div class="d-flex gap-2 align-items-center flex-wrap">
+
+            @* Фильтр по кафедрам *@
+            @{
+                var allDepts = Model.AllDisciplines.Select(d => d.Department)
+                    .Where(d => !string.IsNullOrEmpty(d)).Distinct().OrderBy(d => d).ToList();
+            }
+            <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    Кафедра
+                    <span id="deptBadge" class="badge bg-primary ms-1" style="display:none"></span>
+                </button>
+                <div class="dropdown-menu p-2 shadow" style="min-width:380px; max-width:460px">
+                    <input type="text" id="deptSearch" class="form-control form-control-sm mb-2"
+                           placeholder="Поиск по кафедре..." autocomplete="off" />
+                    <div id="deptList" style="max-height:240px; overflow-y:auto; padding-left:1.75rem">
+                        @foreach (var dept in allDepts)
+                        {
+                            var deptId = $"dep_{Math.Abs(dept.GetHashCode())}";
+                            <div class="form-check dept-item py-1" data-search="@dept.ToLower()">
+                                <input class="form-check-input dept-check" type="checkbox"
+                                       id="@deptId" value="@dept" />
+                                <label class="form-check-label small" for="@deptId">@dept</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Фильтр по дисциплинам *@
             <div class="dropdown">
                 <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
                         data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
@@ -60,7 +92,8 @@
                         {
                             @if (!string.IsNullOrEmpty(group.Key))
                             {
-                                <div class="text-muted small fw-semibold mt-2 mb-1 px-1 dept-label"
+                                <div class="text-muted small fw-semibold mt-2 mb-1 dept-disc-header"
+                                     data-dept="@group.Key"
                                      style="margin-left:-1.75rem; padding-left:0.5rem; background:#f8f9fa">
                                     @group.Key
                                 </div>
@@ -69,6 +102,7 @@
                             {
                                 var checkId = $"dc_{Math.Abs(d.Name.GetHashCode())}";
                                 <div class="form-check disc-item py-1"
+                                     data-dept="@d.Department"
                                      data-search="@d.Display.ToLower() @d.Department.ToLower()">
                                     <input class="form-check-input" type="checkbox"
                                            name="disciplines" value="@d.Name" id="@checkId"
@@ -91,6 +125,7 @@
                     </div>
                 </div>
             </div>
+
             @if (Model.DisciplineFilters.Any())
             {
                 <span class="text-muted small">
@@ -103,9 +138,44 @@
 
 @section Scripts {
 <script>
+    // Department search
+    document.getElementById('deptSearch').addEventListener('input', function () {
+        var q = this.value.toLowerCase();
+        document.querySelectorAll('.dept-item').forEach(function (el) {
+            el.style.display = el.dataset.search.includes(q) ? '' : 'none';
+        });
+    });
+
+    // Department filter → show/hide disciplines
+    function applyDeptFilter() {
+        var checked = Array.from(document.querySelectorAll('.dept-check:checked')).map(c => c.value);
+        var badge = document.getElementById('deptBadge');
+        badge.textContent = checked.length;
+        badge.style.display = checked.length > 0 ? '' : 'none';
+
+        document.querySelectorAll('.disc-item, .dept-disc-header').forEach(function (el) {
+            if (checked.length === 0) {
+                el.style.display = '';
+            } else {
+                el.style.display = checked.includes(el.dataset.dept) ? '' : 'none';
+                // Uncheck hidden disciplines
+                if (!checked.includes(el.dataset.dept)) {
+                    var cb = el.querySelector('input[type=checkbox]');
+                    if (cb) cb.checked = false;
+                }
+            }
+        });
+    }
+
+    document.querySelectorAll('.dept-check').forEach(function (cb) {
+        cb.addEventListener('change', applyDeptFilter);
+    });
+
+    // Discipline search
     document.getElementById('discSearch').addEventListener('input', function () {
         var q = this.value.toLowerCase();
         document.querySelectorAll('.disc-item').forEach(function (el) {
+            if (el.style.display === 'none' && q === '') return;
             el.style.display = el.dataset.search.includes(q) ? '' : 'none';
         });
     });
@@ -136,7 +206,7 @@ else
                         <th>№</th>
                         <th>ИИН</th>
                         <th>Студент</th>
-                        <th>Институт</th>
+                        <th>Дисциплины</th>
                         <th class="text-center">Курс</th>
                         <th class="text-center">Дисц.</th>
                         <th class="text-end">Сумма</th>
@@ -153,7 +223,7 @@ else
                             <td class="text-muted small">#@app.Id</td>
                             <td class="font-monospace small">@app.IIN</td>
                             <td>@app.StudentFullName</td>
-                            <td class="small text-muted">@app.Institute</td>
+                            <td class="small">@string.Join(", ", app.Items.Select(i => i.DisciplineName))</td>
                             <td class="text-center">@app.Course</td>
                             <td class="text-center">@app.Items.Count</td>
                             <td class="text-end fw-semibold">@app.TotalAmount.ToString("N0") тг</td>

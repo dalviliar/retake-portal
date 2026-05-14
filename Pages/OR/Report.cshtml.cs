@@ -33,8 +33,9 @@ public class ReportModel : Pages.ORSpecialistPageModel
             ws.Cell(1, 3).Value = "ИИН";
             ws.Cell(1, 4).Value = "Курс";
             ws.Cell(1, 5).Value = "Кол-во дисциплин пересдачи";
+            ws.Cell(1, 6).Value = "Оплата";
 
-            var header = ws.Range("A1:E1");
+            var header = ws.Range("A1:F1");
             header.Style.Font.Bold = true;
             header.Style.Fill.BackgroundColor = XLColor.LightBlue;
             header.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
@@ -49,6 +50,7 @@ public class ReportModel : Pages.ORSpecialistPageModel
                 ws.Cell(rowNum, 3).Value = row.IIN;
                 ws.Cell(rowNum, 4).Value = row.Course;
                 ws.Cell(rowNum, 5).Value = row.DisciplineCount;
+                ws.Cell(rowNum, 6).Value = row.PaymentDisplay;
                 rowNum++;
             }
             ws.Columns().AdjustToContents();
