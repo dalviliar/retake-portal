@@ -54,16 +54,17 @@ public class StatusModel : PageModel
         if (app == null || app.IIN != sessionIIN || app.Status != "pending_payment")
             return RedirectToPage(new { iin = sessionIIN });
 
+        var disciplineNames = Request.Form["disciplineNames"].ToArray();
         bool anyUploaded = false;
-        foreach (var item in app.Items)
+        for (int i = 0; i < disciplineNames.Length; i++)
         {
-            var file = Request.Form.Files.GetFile($"receipts_{item.DisciplineName}");
+            var file = Request.Form.Files.GetFile($"receipts_{i}");
             if (file != null && file.Length > 0)
             {
                 var url = await _files.UploadAsync(file, "receipts");
                 if (url != null)
                 {
-                    await _apps.SubmitPaymentReceiptAsync(appId, item.DisciplineName, url);
+                    await _apps.SubmitPaymentReceiptAsync(appId, disciplineNames[i]!, url);
                     anyUploaded = true;
                 }
             }
