@@ -156,9 +156,20 @@ public class ApplicationService
         return apps;
     }
 
-    public async Task DirectorReviewApplicationAsync(int id, string status, string? rejectionReason, int directorId, string? paymentType = null)
+    public async Task DirectorReviewApplicationAsync(int id, string status, string? rejectionReason, int directorId, string? paymentType = null, decimal creditCost = 0)
     {
         using var conn = _db.Supabase();
+
+        if (paymentType == "paid" && creditCost > 0)
+        {
+            await conn.ExecuteAsync(
+                "UPDATE application_items SET total_cost = @cost, cost_per_credit = @cost WHERE application_id = @id AND grade IN ('F', 'I')",
+                new { cost = creditCost, id });
+            await conn.ExecuteAsync(
+                "UPDATE applications SET total_amount = (SELECT COALESCE(SUM(total_cost),0) FROM application_items WHERE application_id = @id) WHERE id = @id",
+                new { id });
+        }
+
         const string sql = @"
             UPDATE applications
             SET status = @status, rejection_reason = @rejectionReason,

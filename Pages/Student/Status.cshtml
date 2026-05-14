@@ -212,6 +212,10 @@
                             <div class="alert alert-warning py-2 mt-3 mb-2">
                                 <strong>Директор одобрил заявление.</strong>
                                 Пересдача является <strong>платной</strong>.
+                                @if (app.TotalAmount > 0)
+                                {
+                                    <span>Сумма к оплате: <strong>@app.TotalAmount.ToString("N0") тг</strong>.</span>
+                                }
                                 Оплатите и прикрепите чек ниже.
                             </div>
                             @if (!string.IsNullOrEmpty(Model.PaymentError))

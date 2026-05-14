@@ -7,7 +7,12 @@ namespace RetakePortal.Pages.Director;
 public class DirectorApplicationDetailModel : RetakePortal.Pages.DirectorPageModel
 {
     private readonly ApplicationService _apps;
-    public DirectorApplicationDetailModel(ApplicationService apps) => _apps = apps;
+    private readonly SsoService _sso;
+    public DirectorApplicationDetailModel(ApplicationService apps, SsoService sso)
+    {
+        _apps = apps;
+        _sso = sso;
+    }
 
     public Application? App { get; set; }
     [BindProperty] public int AppId { get; set; }
@@ -37,18 +42,25 @@ public class DirectorApplicationDetailModel : RetakePortal.Pages.DirectorPageMod
             bool requiresDirector = App?.RequiresDirector ?? false;
             string status;
             string? paymentType = null;
+            decimal creditCost = 0;
 
             if (requiresDirector)
             {
                 paymentType = PaymentType == "paid" ? "paid" : "free";
                 status = paymentType == "paid" ? "pending_payment" : "director_approved";
+
+                if (paymentType == "paid" && App != null)
+                {
+                    var student = await _sso.GetStudentByIINAsync(App.IIN);
+                    creditCost = student?.CreditCost ?? 0;
+                }
             }
             else
             {
                 status = "director_approved";
             }
 
-            await _apps.DirectorReviewApplicationAsync(AppId, status, null, SpecialistId, paymentType);
+            await _apps.DirectorReviewApplicationAsync(AppId, status, null, SpecialistId, paymentType, creditCost);
         }
         else
         {
