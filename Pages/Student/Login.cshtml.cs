@@ -7,17 +7,20 @@ namespace RetakePortal.Pages.Student;
 public class LoginModel : PageModel
 {
     private readonly SsoService _sso;
+    private readonly ApplicationService _apps;
     private readonly IConfiguration _config;
 
-    public LoginModel(SsoService sso, IConfiguration config)
+    public LoginModel(SsoService sso, ApplicationService apps, IConfiguration config)
     {
         _sso = sso;
+        _apps = apps;
         _config = config;
     }
 
     [BindProperty]
     public string IIN { get; set; } = string.Empty;
     public string? ErrorMessage { get; set; }
+    public bool HasExistingApplication { get; set; }
 
     public void OnGet() { }
 
@@ -32,7 +35,15 @@ public class LoginModel : PageModel
         var student = await _sso.GetStudentByIINAsync(IIN);
         if (student == null)
         {
-            ErrorMessage = "Студент с данным ИИН не найден в системе";
+            var existing = await _apps.GetApplicationsByIINAsync(IIN);
+            if (existing.Any())
+            {
+                HasExistingApplication = true;
+            }
+            else
+            {
+                ErrorMessage = "Студент с данным ИИН не найден в системе";
+            }
             return Page();
         }
 
