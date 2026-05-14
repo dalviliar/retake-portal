@@ -216,7 +216,13 @@
                                 {
                                     <span>Сумма к оплате: <strong>@app.TotalAmount.ToString("N0") тг</strong>.</span>
                                 }
-                                Оплатите и прикрепите чек ниже.
+                            </div>
+                            <div class="mb-3">
+                                <a href="https://kaspi.kz/pay/SatbayevUniversity?started_from=QR"
+                                   target="_blank" class="btn btn-warning fw-semibold">
+                                    💳 Оплатить через Kaspi
+                                </a>
+                                <div class="text-muted small mt-1">После оплаты прикрепите чек ниже.</div>
                             </div>
                             @if (!string.IsNullOrEmpty(Model.PaymentError))
                             {
