@@ -1,0 +1,203 @@
+@page
+@model RetakePortal.Pages.Director.AnalyticsModel
+@{ ViewData["Title"] = "Аналитика"; Layout = "_Layout"; }
+
+@{
+    string JsonKeys(Dictionary<string, int> d)   => System.Text.Json.JsonSerializer.Serialize(d.Keys.ToList());
+    string JsonVals(Dictionary<string, int> d)   => System.Text.Json.JsonSerializer.Serialize(d.Values.ToList());
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Аналитика</h4>
+        <p class="text-muted small mb-0">Сводная статистика по всем заявлениям</p>
+    </div>
+    <a asp-page="/Director/Stats" class="btn btn-outline-secondary btn-sm">← Все заявления</a>
+</div>
+
+@* KPI Cards *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-primary">@Model.Total</div>
+            <div class="text-muted small mt-1">Всего заявлений</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-warning">@Model.PendingDirector</div>
+            <div class="text-muted small mt-1">На рассмотрении</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-success">@Model.Approved</div>
+            <div class="text-muted small mt-1">Одобрено</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-danger">@Model.Rejected</div>
+            <div class="text-muted small mt-1">Отклонено</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold" style="color:#f59e0b">@Model.PaidCount</div>
+            <div class="text-muted small mt-1">Платных</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-success">@Model.FreeCount</div>
+            <div class="text-muted small mt-1">Бесплатных</div>
+        </div>
+    </div>
+</div>
+
+@* Charts row 1 *@
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">По статусам</h6>
+                <canvas id="chartStatus" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">По оценкам</h6>
+                <canvas id="chartGrade" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">По курсам</h6>
+                <canvas id="chartCourse" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Charts row 2 *@
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">По институтам</h6>
+                <canvas id="chartInstitute" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-3">Динамика подач</h6>
+                <canvas id="chartDays" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Top disciplines *@
+@if (Model.TopDisciplines.Any())
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h6 class="text-muted text-uppercase small mb-3">Топ дисциплин по заявкам</h6>
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">№</th>
+                        <th>Дисциплина</th>
+                        <th class="text-end pe-3">Заявок</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int num = 1; }
+                    @foreach (var (disc, cnt) in Model.TopDisciplines)
+                    {
+                        <tr>
+                            <td class="ps-3 text-muted">@num</td>
+                            <td>@disc</td>
+                            <td class="text-end pe-3 fw-semibold">@cnt</td>
+                        </tr>
+                        num++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.font.size   = 12;
+    Chart.defaults.color       = '#64748b';
+
+    const COLORS = ['#1a56db','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
+
+    function barChart(id, labels, data, color) {
+        new Chart(document.getElementById(id), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{ data, backgroundColor: color ?? '#1a56db',
+                    borderRadius: 6, borderSkipped: false }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { maxRotation: 30 } },
+                    y: { grid: { color: '#f1f5f9' }, beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    }
+
+    function donutChart(id, labels, data) {
+        new Chart(document.getElementById(id), {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data, backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
+            options: {
+                cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } }
+            }
+        });
+    }
+
+    function lineChart(id, labels, data) {
+        new Chart(document.getElementById(id), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    data, fill: true,
+                    backgroundColor: 'rgba(26,86,219,.1)',
+                    borderColor: '#1a56db', borderWidth: 2,
+                    pointRadius: 3, pointBackgroundColor: '#1a56db', tension: 0.3
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: '#f1f5f9' }, beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    }
+
+    donutChart('chartStatus',   @Html.Raw(JsonKeys(Model.ByStatus)),    @Html.Raw(JsonVals(Model.ByStatus)));
+    barChart  ('chartGrade',    @Html.Raw(JsonKeys(Model.ByGrade)),     @Html.Raw(JsonVals(Model.ByGrade)),   ['#ef4444','#1a56db','#06b6d4']);
+    barChart  ('chartCourse',   @Html.Raw(JsonKeys(Model.ByCourse)),    @Html.Raw(JsonVals(Model.ByCourse)));
+    barChart  ('chartInstitute',@Html.Raw(JsonKeys(Model.ByInstitute)), @Html.Raw(JsonVals(Model.ByInstitute)));
+    lineChart ('chartDays',     @Html.Raw(JsonKeys(Model.ByDay)),       @Html.Raw(JsonVals(Model.ByDay)));
+</script>
+}
