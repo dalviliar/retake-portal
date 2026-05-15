@@ -1,46 +1,232 @@
-html {
-    font-size: 14px;
-    position: relative;
-    min-height: 100%;
+/* ============================================================
+   Satbayev University — RetakePortal Custom Theme
+   ============================================================ */
+
+:root {
+  --sat-navy:    #0c2c6e;
+  --sat-blue:    #1a56db;
+  --sat-blue-lt: #e8f0fe;
+  --sat-border:  #d0d9e8;
+  --sat-text:    #1e293b;
+  --sat-muted:   #64748b;
+  --sat-bg:      #f2f5fb;
 }
+
+html { font-size: 14px; }
 
 body {
-    margin-bottom: 60px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--sat-bg);
+  color: var(--sat-text);
 }
 
-.btn:focus, .btn:active:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-.font-monospace {
-    font-family: 'Consolas', 'Courier New', monospace;
-    letter-spacing: 0.05em;
-}
-
-.card {
-    border-radius: 0.5rem;
+/* ── Navbar ── */
+.navbar {
+  background: var(--sat-navy) !important;
+  padding: 0.55rem 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,.28);
 }
 
 .navbar-brand {
-    font-size: 0.95rem;
-    letter-spacing: 0.02em;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff !important;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
+.navbar-brand::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: var(--sat-blue);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.nav-link {
+  color: rgba(255,255,255,.78) !important;
+  font-size: 0.83rem;
+  padding: 0.35rem 0.7rem !important;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-link:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,.12);
+}
+
+.nav-link.text-warning { color: #fbbf24 !important; }
+.nav-link.text-warning:hover { color: #f59e0b !important; background: rgba(251,191,36,.12); }
+
+.navbar-text {
+  color: rgba(255,255,255,.65) !important;
+  font-size: 0.78rem;
+  background: rgba(255,255,255,.1);
+  padding: 0.22rem 0.7rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ── Content container ── */
+.container.my-4 { padding-top: 1.5rem; }
+
+/* ── Cards ── */
+.card {
+  border-radius: 12px;
+  border: 1px solid var(--sat-border);
+}
+
+.card.border-0.shadow-sm {
+  border: 1px solid var(--sat-border) !important;
+  box-shadow: 0 2px 14px rgba(12,44,110,.07) !important;
+}
+
+.card-header {
+  border-radius: 12px 12px 0 0 !important;
+  border-bottom: 1px solid var(--sat-border);
+  background: #f8faff !important;
+}
+
+.card-header.bg-white { background: #fff !important; }
+.card-header.bg-light { background: #f8faff !important; }
+
+/* ── Tables ── */
 .table th {
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #6c757d;
+  font-size: 0.71rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sat-muted);
 }
 
+.table-light {
+  --bs-table-bg: #f8faff;
+}
+
+.table-hover > tbody > tr:hover > * {
+  background: #f0f5ff;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: var(--sat-blue);
+  border-color: var(--sat-blue);
+  font-weight: 600;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: #1444b8;
+  border-color: #1444b8;
+}
+
+.btn-outline-primary {
+  color: var(--sat-blue);
+  border-color: var(--sat-blue);
+  font-weight: 500;
+}
+.btn-outline-primary:hover {
+  background: var(--sat-blue);
+  border-color: var(--sat-blue);
+}
+
+.btn-outline-secondary { font-weight: 500; }
+
+.btn { border-radius: 8px; }
+.btn-sm { border-radius: 6px; }
+
+/* ── Focus rings ── */
+.btn:focus, .form-control:focus,
+.form-check-input:focus, .form-select:focus {
+  box-shadow: 0 0 0 3px rgba(26,86,219,.18);
+  outline: none;
+}
+
+/* ── Alerts ── */
+.alert {
+  border-radius: 10px;
+  border-width: 0;
+  border-left: 4px solid transparent;
+}
+.alert-warning  { border-left-color: #f59e0b; background: #fffbeb; color: #78350f; }
+.alert-danger   { border-left-color: #ef4444; background: #fef2f2; color: #7f1d1d; }
+.alert-info     { border-left-color: var(--sat-blue); background: #eff6ff; color: #1e3a8a; }
+.alert-success  { border-left-color: #22c55e; background: #f0fdf4; color: #14532d; }
+.alert-primary  { border-left-color: var(--sat-blue); background: var(--sat-blue-lt); color: #1e3a8a; }
+
+/* ── Badges ── */
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+}
+
+/* ── Page headings ── */
+h4.fw-bold { color: var(--sat-navy); }
+
+h6.text-muted.text-uppercase.small {
+  color: var(--sat-muted) !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.08em;
+}
+
+/* ── Discipline block (Apply page) ── */
 .discipline-block {
-    background: #fafafa;
-    transition: background 0.15s;
+  background: #fff;
+  border-color: var(--sat-border) !important;
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .discipline-block:has(.disc-check:checked) {
-    background: #f0f7ff;
-    border-color: #0d6efd !important;
+  background: var(--sat-blue-lt);
+  border-color: var(--sat-blue) !important;
+  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
 }
+
+/* ── Pagination ── */
+.page-link {
+  color: var(--sat-blue);
+  border-radius: 6px !important;
+  margin: 0 2px;
+}
+.page-item.active .page-link {
+  background: var(--sat-blue);
+  border-color: var(--sat-blue);
+}
+
+/* ── Dropdown menus ── */
+.dropdown-menu {
+  border-radius: 10px;
+  border-color: var(--sat-border);
+  box-shadow: 0 6px 24px rgba(12,44,110,.13);
+}
+
+/* ── Form controls ── */
+.form-control, .form-select {
+  border-color: var(--sat-border);
+  border-radius: 8px;
+}
+.form-control:hover, .form-select:hover {
+  border-color: #a0b0cc;
+}
+
+/* ── Monospace ── */
+.font-monospace {
+  font-family: 'Consolas', 'Courier New', monospace;
+  letter-spacing: 0.05em;
+}
+
+/* ── Footer ── */
+footer {
+  background: var(--sat-navy) !important;
+  border-top: none !important;
+}
+footer small { color: rgba(255,255,255,.45); }
+
+/* ── Step progress circles (Status page) ── */
+.rounded-circle { font-size: 0.8rem; }
