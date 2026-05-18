@@ -56,40 +56,19 @@ public class ApplyModel : Pages.StudentPageModel
         var student = await _sso.GetStudentByIINAsync(StudentIIN);
         if (student == null) return RedirectToPage("/Student/Login");
 
-        // FX = 1 credit cost; F and I = cost determined by director later
-        decimal total = selectedIndices.Sum(i =>
-            (gradeValues[i] ?? "FX") == "FX" ? student.CreditCost : 0m);
-
-        // F/I → auto-route to director; FX → OR specialist first
-        bool hasDirectorGrades = selectedIndices.Any(i => (gradeValues[i] ?? "FX") is "F" or "I");
-        string initialStatus = hasDirectorGrades ? "pending_director" : "pending";
-
-        var app = new Application
-        {
-            IIN = StudentIIN,
-            StudentFullName = student.FullName,
-            Specialty = student.Specialty,
-            Institute = student.Institute,
-            Department = student.Department,
-            Course = student.Course,
-            EducationLevel = student.EducationLevel,
-            TotalAmount = total
-        };
-
-        int appId = await _apps.CreateApplicationAsync(app, initialStatus);
-
+        // Сначала загружаем все файлы — если хоть один не приложен, заявка не создаётся
+        var itemsToCreate = new List<ApplicationItem>();
         foreach (var i in selectedIndices)
         {
-            var grade = gradeValues[i] ?? "FX";
+            var grade   = gradeValues[i] ?? "FX";
             var credits = int.Parse(creditsArr[i]!);
             var costPer = grade == "FX" ? student.CreditCost : 0m;
 
-            string? confUrl = null;
+            string? confUrl    = null;
             string? receiptUrl = null;
 
             if (grade is "F" or "I")
             {
-                // Only confirmation document at submission; payment receipt uploaded later if required
                 var confFile = Request.Form.Files.GetFile($"confDoc_{i}");
                 confUrl = await _files.UploadAsync(confFile, "confirmation");
                 if (confUrl == null)
@@ -98,7 +77,7 @@ public class ApplyModel : Pages.StudentPageModel
                     return Page();
                 }
             }
-            else // FX
+            else
             {
                 var receiptFile = Request.Form.Files.GetFile($"payReceipt_{i}");
                 receiptUrl = await _files.UploadAsync(receiptFile, "receipts");
@@ -109,17 +88,40 @@ public class ApplyModel : Pages.StudentPageModel
                 }
             }
 
-            await _apps.AddApplicationItemAsync(new ApplicationItem
+            itemsToCreate.Add(new ApplicationItem
             {
-                ApplicationId = appId,
-                DisciplineName = disciplineNames[i] ?? string.Empty,
-                Grade = grade,
-                Credits = credits,
-                CostPerCredit = costPer,
-                TotalCost = costPer,
+                DisciplineName          = disciplineNames[i] ?? string.Empty,
+                Grade                   = grade,
+                Credits                 = credits,
+                CostPerCredit           = costPer,
+                TotalCost               = costPer,
                 ConfirmationDocumentUrl = confUrl,
-                PaymentReceiptUrl = receiptUrl
+                PaymentReceiptUrl       = receiptUrl
             });
+        }
+
+        // Все файлы загружены — теперь создаём заявку
+        decimal total = itemsToCreate.Sum(it => it.TotalCost);
+        bool hasDirectorGrades = itemsToCreate.Any(it => it.Grade is "F" or "I");
+        string initialStatus   = hasDirectorGrades ? "pending_director" : "pending";
+
+        var app = new Application
+        {
+            IIN             = StudentIIN,
+            StudentFullName = student.FullName,
+            Specialty       = student.Specialty,
+            Institute       = student.Institute,
+            Department      = student.Department,
+            Course          = student.Course,
+            EducationLevel  = student.EducationLevel,
+            TotalAmount     = total
+        };
+
+        int appId = await _apps.CreateApplicationAsync(app, initialStatus);
+        foreach (var item in itemsToCreate)
+        {
+            item.ApplicationId = appId;
+            await _apps.AddApplicationItemAsync(item);
         }
 
         return RedirectToPage("/Student/Status");
