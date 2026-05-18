@@ -56,6 +56,18 @@ public class ApplyModel : Pages.StudentPageModel
         var student = await _sso.GetStudentByIINAsync(StudentIIN);
         if (student == null) return RedirectToPage("/Student/Login");
 
+        // Серверная проверка: дисциплина уже есть в активной заявке
+        var alreadyApplied = await _apps.GetAppliedDisciplinesAsync(StudentIIN);
+        foreach (var i in selectedIndices)
+        {
+            var dn = disciplineNames[i] ?? string.Empty;
+            if (alreadyApplied.Contains(dn))
+            {
+                ErrorMessage = $"Дисциплина «{dn}» уже есть в активной заявке";
+                return Page();
+            }
+        }
+
         // Сначала загружаем все файлы — если хоть один не приложен, заявка не создаётся
         var itemsToCreate = new List<ApplicationItem>();
         foreach (var i in selectedIndices)
