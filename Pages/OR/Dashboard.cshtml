@@ -242,7 +242,7 @@ else
                             <td class="text-muted small">#@app.Id</td>
                             <td class="font-monospace small">@app.IIN</td>
                             <td>@app.StudentFullName</td>
-                            <td class="small">@string.Join(", ", app.Items.Select(i => i.DisciplineName))</td>
+                            <td class="small">@string.Join(", ", app.Items.Select(i => i.DisciplineDisplay))</td>
                             <td class="text-center">@app.Course</td>
                             <td class="text-center">@app.Items.Count</td>
                             <td class="text-end fw-semibold">@app.TotalAmount.ToString("N0") тг</td>

@@ -8,4 +8,7 @@ public class Grade
     public int Credits { get; set; }
     public string Semester { get; set; } = string.Empty;
     public bool IsExpelled { get; set; }
+    public string DisciplineDisplay => string.IsNullOrEmpty(DisciplineCode)
+        ? DisciplineName
+        : $"{DisciplineCode} — {DisciplineName}";
 }

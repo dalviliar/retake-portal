@@ -153,7 +153,13 @@
                                         _    => "bg-warning text-dark"
                                     };
                                     <tr>
-                                        <td>@item.DisciplineName</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(item.DisciplineCode))
+                                            {
+                                                <span class="text-muted font-monospace small d-block">@item.DisciplineCode</span>
+                                            }
+                                            @item.DisciplineName
+                                        </td>
                                         <td class="text-center">
                                             <span class="badge @gradeClass">@item.Grade</span>
                                         </td>
@@ -237,7 +243,7 @@
                                     <input type="hidden" name="disciplineNames" value="@item.DisciplineName" />
                                     <div class="mb-2">
                                         <label class="form-label small fw-semibold">
-                                            Чек оплаты — @item.DisciplineName
+                                            Чек оплаты — @item.DisciplineDisplay
                                         </label>
                                         <input type="file" name="receipts_@receiptIdx"
                                                class="form-control form-control-sm"

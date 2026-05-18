@@ -45,6 +45,10 @@
                                            name="SelectedIndices" value="@i"
                                            id="chk-@i" onchange="toggleUploads(@i)">
                                     <label class="form-check-label fw-semibold" for="chk-@i">
+                                        @if (!string.IsNullOrEmpty(g.DisciplineCode))
+                                        {
+                                            <span class="text-muted font-monospace fw-normal small me-1">@g.DisciplineCode</span>
+                                        }
                                         @g.DisciplineName
                                         <span class="badge @badgeClass ms-1">@g.GradeValue</span>
                                         <span class="text-muted fw-normal ms-2">@costDisplay</span>

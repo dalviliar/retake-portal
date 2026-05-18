@@ -338,11 +338,12 @@ public class ApplicationService
     private static async Task<List<ApplicationItem>> GetItemsAsync(NpgsqlConnection conn, int appId)
     {
         const string sql = @"
-            SELECT id, application_id AS ApplicationId, discipline_name AS DisciplineName,
-                   grade, credits, cost_per_credit AS CostPerCredit, total_cost AS TotalCost,
-                   confirmation_document_url AS ConfirmationDocumentUrl,
-                   payment_receipt_url AS PaymentReceiptUrl
-            FROM application_items WHERE application_id = @appId ORDER BY id";
+            SELECT ai.id, ai.application_id AS ApplicationId, ai.discipline_name AS DisciplineName,
+                   COALESCE((SELECT discipline_code FROM grades WHERE discipline_name = ai.discipline_name LIMIT 1), '') AS DisciplineCode,
+                   ai.grade, ai.credits, ai.cost_per_credit AS CostPerCredit, ai.total_cost AS TotalCost,
+                   ai.confirmation_document_url AS ConfirmationDocumentUrl,
+                   ai.payment_receipt_url AS PaymentReceiptUrl
+            FROM application_items ai WHERE ai.application_id = @appId ORDER BY ai.id";
         return (await conn.QueryAsync<ApplicationItem>(sql, new { appId })).ToList();
     }
 }

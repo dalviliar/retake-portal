@@ -59,7 +59,13 @@
                                 _   => "bg-warning text-dark"
                             };
                             <tr>
-                                <td>@item.DisciplineName</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.DisciplineCode))
+                                    {
+                                        <span class="text-muted font-monospace small d-block">@item.DisciplineCode</span>
+                                    }
+                                    @item.DisciplineName
+                                </td>
                                 <td class="text-center">
                                     <span class="badge @badgeClass">@item.Grade</span>
                                 </td>

@@ -62,6 +62,10 @@
                             };
                             <tr>
                                 <td>
+                                    @if (!string.IsNullOrEmpty(item.DisciplineCode))
+                                    {
+                                        <span class="text-muted font-monospace small d-block">@item.DisciplineCode</span>
+                                    }
                                     @item.DisciplineName
                                     <div class="mt-1">
                                         @if (!string.IsNullOrEmpty(item.ConfirmationDocumentUrl))

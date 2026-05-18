@@ -11,4 +11,8 @@ public class ApplicationItem
     public decimal TotalCost { get; set; }
     public string? ConfirmationDocumentUrl { get; set; }
     public string? PaymentReceiptUrl { get; set; }
+    public string DisciplineCode { get; set; } = string.Empty;
+    public string DisciplineDisplay => string.IsNullOrEmpty(DisciplineCode)
+        ? DisciplineName
+        : $"{DisciplineCode} — {DisciplineName}";
 }

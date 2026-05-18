@@ -78,6 +78,7 @@ public class SsoService
         const string sql = @"
             SELECT
                 discipline_name  AS DisciplineName,
+                discipline_code  AS DisciplineCode,
                 grade            AS GradeValue,
                 credits          AS Credits,
                 semester         AS Semester
