@@ -125,6 +125,10 @@ WHERE smc.SemesterID = $SEMESTER_ID
   AND u.IIN IS NOT NULL
 "@
 
+# ── ЛОГИРОВАНИЕ ─────────────────────────────────────
+$logFile = Join-Path $PSScriptRoot "sync.log"
+Start-Transcript -Path $logFile -Append -NoClobber | Out-Null
+
 # ── ЗАПУСК ──────────────────────────────────────────
 Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Sync started (semester ID=$SEMESTER_ID)" -ForegroundColor Cyan
 
@@ -187,3 +191,4 @@ Write-Host "  Schedules: $($scheduleRows.Count) - otpravlyayu v Supabase..."
 Push-ToSupabase -Table "retake_schedules" -Rows $scheduleRows -OnConflict "student_iin,discipline_name,semester"
 
 Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Done!" -ForegroundColor Green
+Stop-Transcript | Out-Null

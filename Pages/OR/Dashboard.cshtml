@@ -71,6 +71,11 @@
                             </div>
                         }
                     </div>
+                    <div class="border-top mt-2 pt-2 d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-primary" id="deptApplyBtn">Применить</button>
+                        <a asp-page="/OR/Dashboard" asp-route-status="@Model.StatusFilter"
+                           class="btn btn-sm btn-outline-secondary">Сбросить</a>
+                    </div>
                 </div>
             </div>
 
@@ -169,6 +174,20 @@
 
     document.querySelectorAll('.dept-check').forEach(function (cb) {
         cb.addEventListener('change', applyDeptFilter);
+    });
+
+    // Применить кафедры: отметить все дисциплины выбранных кафедр и отправить форму
+    document.getElementById('deptApplyBtn').addEventListener('click', function () {
+        var checked = Array.from(document.querySelectorAll('.dept-check:checked')).map(c => c.value);
+        document.querySelectorAll('.disc-item input[type=checkbox]').forEach(function (cb) {
+            var item = cb.closest('.disc-item');
+            if (checked.length === 0) {
+                cb.checked = false;
+            } else {
+                cb.checked = checked.includes(item.dataset.dept);
+            }
+        });
+        document.getElementById('filterForm').submit();
     });
 
     // Discipline search
