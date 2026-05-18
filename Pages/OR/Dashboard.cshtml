@@ -17,6 +17,7 @@
     <div class="d-flex gap-2 flex-wrap">
         @{
             var _discParams = string.Join("", Model.DisciplineFilters.Select(d => $"&disciplines={Uri.EscapeDataString(d)}"));
+            var _deptParams = string.Join("", Model.DeptFilters.Select(d => $"&depts={Uri.EscapeDataString(d)}"));
         }
         @foreach (var tab in new[] {
             ("", "Все"),
@@ -29,7 +30,7 @@
             ("rejected", "Отклонено")
         })
         {
-            <a href="/OR/Dashboard?status=@tab.Item1@_discParams"
+            <a href="/OR/Dashboard?status=@tab.Item1@_discParams@_deptParams"
                class="btn btn-sm @(Model.StatusFilter == tab.Item1 ? "btn-primary" : "btn-outline-secondary")">
                 @tab.Item2
                 @if (tab.Item1 == "" && Model.ActionRequiredCount > 0)
@@ -66,7 +67,8 @@
                             var deptId = $"dep_{Math.Abs(dept.GetHashCode())}";
                             <div class="form-check dept-item py-1" data-search="@dept.ToLower()">
                                 <input class="form-check-input dept-check" type="checkbox"
-                                       id="@deptId" value="@dept" />
+                                       name="depts" id="@deptId" value="@dept"
+                                       @(Model.DeptFilters.Contains(dept) ? "checked" : "") />
                                 <label class="form-check-label small" for="@deptId">@dept</label>
                             </div>
                         }
@@ -190,6 +192,9 @@
         document.getElementById('filterForm').submit();
     });
 
+    // Apply dept filter on page load (restores state from URL params)
+    applyDeptFilter();
+
     // Discipline search
     document.getElementById('discSearch').addEventListener('input', function () {
         var q = this.value.toLowerCase();
@@ -267,6 +272,7 @@ else
                             <td class="small text-muted">@app.SubmittedAt.ToAlmatyShort()</td>
                             <td>
                                 <a asp-page="/OR/ApplicationDetail" asp-route-id="@app.Id"
+                                   asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
                                    class="btn btn-sm btn-outline-primary">
                                     Открыть
                                 </a>
@@ -281,7 +287,8 @@ else
     @if (Model.TotalPages > 1)
     {
         var discParams = string.Join("", Model.DisciplineFilters.Select(d => $"&disciplines={Uri.EscapeDataString(d)}"));
-        string PageUrl(int p) => $"/OR/Dashboard?status={Uri.EscapeDataString(Model.StatusFilter)}{discParams}&page={p}";
+        var deptParams = string.Join("", Model.DeptFilters.Select(d => $"&depts={Uri.EscapeDataString(d)}"));
+        string PageUrl(int p) => $"/OR/Dashboard?status={Uri.EscapeDataString(Model.StatusFilter)}{discParams}{deptParams}&page={p}";
         <nav class="mt-3">
             <ul class="pagination pagination-sm justify-content-center flex-wrap mb-0">
                 <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">

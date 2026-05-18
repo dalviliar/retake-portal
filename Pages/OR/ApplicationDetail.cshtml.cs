@@ -12,7 +12,14 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
     public Application? App { get; set; }
     [BindProperty] public int AppId { get; set; }
     [BindProperty] public string? Reason { get; set; }
+    [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
     public string? ErrorMessage { get; set; }
+
+    private IActionResult BackToDashboard() =>
+        IsValidReturn(ReturnUrl) ? Redirect(ReturnUrl!) : RedirectToPage("/OR/Dashboard");
+
+    private static bool IsValidReturn(string? url) =>
+        !string.IsNullOrEmpty(url) && url.StartsWith("/OR/Dashboard");
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -28,14 +35,14 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
         if (decision == "schedule")
         {
             await _apps.ScheduleRetakeAsync(AppId, SpecialistId);
-            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId });
+            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId, returnUrl = ReturnUrl });
         }
 
         if (decision == "verify_payment")
         {
             await _apps.ReviewApplicationAsync(AppId, "approved", null, SpecialistId);
             await _apps.ScheduleRetakeAsync(AppId, SpecialistId);
-            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId });
+            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId, returnUrl = ReturnUrl });
         }
 
         if (decision == "rejected" && string.IsNullOrWhiteSpace(Reason))
@@ -47,7 +54,7 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
         if (decision == "rejected" && App?.Status == "approved")
         {
             await _apps.RejectApprovedApplicationAsync(AppId, "Акт нарушения", SpecialistId);
-            return RedirectToPage("/OR/Dashboard");
+            return BackToDashboard();
         }
 
         var status = decision switch
@@ -59,6 +66,6 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
         };
 
         await _apps.ReviewApplicationAsync(AppId, status, Reason?.Trim(), SpecialistId);
-        return RedirectToPage("/OR/Dashboard");
+        return BackToDashboard();
     }
 }

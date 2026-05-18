@@ -13,6 +13,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public List<DisciplineInfo> AllDisciplines { get; set; } = [];
     public string StatusFilter { get; set; } = "";
     public List<string> DisciplineFilters { get; set; } = [];
+    public List<string> DeptFilters { get; set; } = [];
     public int ActionRequiredCount { get; set; }
     public int ExpulsionConflictCount { get; set; }
     public int CurrentPage { get; set; } = 1;
@@ -20,10 +21,11 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public int TotalCount { get; set; }
     private const int PageSize = 50;
 
-    public async Task<IActionResult> OnGetAsync(string? status, List<string>? disciplines, int page = 1)
+    public async Task<IActionResult> OnGetAsync(string? status, List<string>? disciplines, List<string>? depts, int page = 1)
     {
         StatusFilter = status ?? "";
         DisciplineFilters = disciplines ?? [];
+        DeptFilters = depts ?? [];
         CurrentPage = Math.Max(1, page);
 
         AllDisciplines = await _apps.GetAllDisciplinesAsync();

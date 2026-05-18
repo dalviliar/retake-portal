@@ -7,12 +7,12 @@
 @if (Model.App == null)
 {
     <div class="alert alert-danger">Заявление не найдено.</div>
-    <a asp-page="/OR/Dashboard" class="btn btn-outline-secondary btn-sm">← Назад</a>
+    <a href="@(Model.ReturnUrl ?? "/OR/Dashboard")" class="btn btn-outline-secondary btn-sm">← Назад</a>
     return;
 }
 
 <div class="mb-3">
-    <a asp-page="/OR/Dashboard" class="text-muted small">← Все заявления</a>
+    <a href="@(Model.ReturnUrl ?? "/OR/Dashboard")" class="text-muted small">← Все заявления</a>
 </div>
 
 <div class="d-flex justify-content-between align-items-start mb-4">
@@ -188,6 +188,7 @@
             }
             <form method="post">
                 <input type="hidden" asp-for="AppId" />
+                <input type="hidden" asp-for="ReturnUrl" />
                 <div class="d-flex gap-2">
                     <button type="submit" name="decision" value="verify_payment" class="btn btn-success">
                         &#x2713; Оплата подтверждена — одобрить
@@ -213,6 +214,7 @@
             <p class="text-muted small mb-3">Заявление одобрено. Подтвердите назначение пересдачи студенту.</p>
             <form method="post">
                 <input type="hidden" asp-for="AppId" />
+                <input type="hidden" asp-for="ReturnUrl" />
                 @if (Model.App.ExpulsionConflict)
                 {
                     <div class="d-flex gap-2">
@@ -248,6 +250,7 @@
 
             <form method="post">
                 <input type="hidden" asp-for="AppId" />
+                <input type="hidden" asp-for="ReturnUrl" />
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Причина (обязательна при отклонении)</label>
                     <textarea asp-for="Reason" class="form-control" rows="3"

@@ -134,5 +134,11 @@
         document.getElementById('totalAmount').textContent = total.toLocaleString('ru-RU') + ' тг';
         document.getElementById('submitBtn').disabled = !any;
     }
+
+    document.getElementById('applyForm').addEventListener('submit', function () {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Отправка...';
+    });
 </script>
 }
