@@ -53,6 +53,8 @@
                             @if (isFxOnly)
                             {
                                 @* FX route: Подача → ОР → Одобрено → Пересдача *@
+                                bool fxHasSchedule = app.Items.Any(i => Model.RetakeSchedules
+                                    .Any(s => s.DisciplineName == i.DisciplineName && s.ExamDate != null));
                                 var steps = new[] {
                                     ("Подача", new[]{"pending","pending_director","director_approved","pending_payment","payment_submitted","approved","rejected","scheduled"}),
                                     ("Специалист ОР", new[]{"approved","rejected","scheduled"}),
@@ -62,7 +64,8 @@
                                 <div class="d-flex align-items-center gap-0 mb-1">
                                     @foreach (var (label, activeStatuses) in steps)
                                     {
-                                        bool active = activeStatuses.Contains(app.Status);
+                                        bool active = activeStatuses.Contains(app.Status)
+                                            || (label == "Пересдача" && fxHasSchedule && app.Status is "approved" or "scheduled");
                                         bool current = label == "Подача" ? app.Status == "pending"
                                             : label == "Специалист ОР" ? app.Status is "pending" or "approved" or "rejected"
                                             : label == "Одобрено" ? app.Status == "approved"
@@ -137,9 +140,8 @@
                                 <tr>
                                     <th>Дисциплина</th>
                                     <th class="text-center">Оценка</th>
-                                    <th class="text-center">Кредиты</th>
                                     <th class="text-end">Сумма</th>
-                                    @if (app.Status == "approved") { <th>Дата пересдачи</th> }
+                                    @if (app.Status is "approved" or "scheduled") { <th>Дата пересдачи</th> }
                                 </tr>
                             </thead>
                             <tbody>
@@ -163,11 +165,10 @@
                                         <td class="text-center">
                                             <span class="badge @gradeClass">@item.Grade</span>
                                         </td>
-                                        <td class="text-center">@item.Credits</td>
                                         <td class="text-end">
                                             @(item.TotalCost == 0 ? "—" : item.TotalCost.ToString("N0") + " тг")
                                         </td>
-                                        @if (app.Status == "approved")
+                                        @if (app.Status is "approved" or "scheduled")
                                         {
                                             <td>
                                                 @if (sched?.ExamDate != null)
@@ -198,7 +199,7 @@
                             {
                                 <tfoot>
                                     <tr class="fw-bold">
-                                        <td colspan="3" class="text-end">Итого:</td>
+                                        <td colspan="2" class="text-end">Итого:</td>
                                         <td class="text-end">@app.TotalAmount.ToString("N0") тг</td>
                                     </tr>
                                 </tfoot>
@@ -270,7 +271,7 @@
                                 Пересдача бесплатная — ожидайте назначения расписания.
                             </div>
                         }
-                        else if (app.Status == "approved")
+                        else if (app.Status is "approved" or "scheduled")
                         {
                             @if (Model.RetakeSchedules.Any(s => app.Items.Any(i => i.DisciplineName == s.DisciplineName && s.ExamDate != null)))
                             {
