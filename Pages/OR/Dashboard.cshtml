@@ -272,7 +272,7 @@ else
                             <td class="small text-muted">@app.SubmittedAt.ToAlmatyShort()</td>
                             <td>
                                 <a asp-page="/OR/ApplicationDetail" asp-route-id="@app.Id"
-                                   asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
+                                   asp-route-returnUrl="@(HttpContext.Request.Path + HttpContext.Request.QueryString)"
                                    class="btn btn-sm btn-outline-primary">
                                     Открыть
                                 </a>
