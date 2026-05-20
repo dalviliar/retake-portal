@@ -21,12 +21,12 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public int TotalCount { get; set; }
     private const int PageSize = 50;
 
-    public async Task<IActionResult> OnGetAsync(string? status, List<string>? disciplines, List<string>? depts, int page = 1)
+    public async Task<IActionResult> OnGetAsync(string? status, List<string>? disciplines, List<string>? depts, int p = 1)
     {
         StatusFilter = status ?? "";
         DisciplineFilters = disciplines ?? [];
         DeptFilters = depts ?? [];
-        CurrentPage = Math.Max(1, page);
+        CurrentPage = Math.Max(1, p);
 
         AllDisciplines = await _apps.GetAllDisciplinesAsync();
         ActionRequiredCount = await _apps.GetActionRequiredCountAsync();
