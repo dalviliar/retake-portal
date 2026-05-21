@@ -44,12 +44,17 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <h6 class="text-muted text-uppercase small mb-3">Дисциплины</h6>
+                @{
+                    bool canActOnItems = Model.App.Status is "pending" or "director_approved";
+                }
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Дисциплина</th>
                             <th class="text-center">Оценка</th>
                             <th class="text-end">Сумма</th>
+                            <th class="text-center">Статус</th>
+                            @if (canActOnItems) { <th></th> }
                         </tr>
                     </thead>
                     <tbody>
@@ -70,15 +75,11 @@
                                     <div class="mt-1">
                                         @if (!string.IsNullOrEmpty(item.ConfirmationDocumentUrl))
                                         {
-                                            <a href="@item.ConfirmationDocumentUrl" target="_blank" class="badge bg-secondary text-decoration-none me-1">
-                                                Справка
-                                            </a>
+                                            <a href="@item.ConfirmationDocumentUrl" target="_blank" class="badge bg-secondary text-decoration-none me-1">Справка</a>
                                         }
                                         @if (!string.IsNullOrEmpty(item.PaymentReceiptUrl))
                                         {
-                                            <a href="@item.PaymentReceiptUrl" target="_blank" class="badge bg-info text-decoration-none">
-                                                Чек
-                                            </a>
+                                            <a href="@item.PaymentReceiptUrl" target="_blank" class="badge bg-info text-decoration-none">Чек</a>
                                         }
                                     </div>
                                 </td>
@@ -88,18 +89,86 @@
                                 <td class="text-end">
                                     @(item.TotalCost == 0 ? "Бесплатно" : item.TotalCost.ToString("N0") + " тг")
                                 </td>
+                                <td class="text-center">
+                                    <span class="badge @item.ItemStatusBadgeClass">@item.ItemStatusDisplay</span>
+                                    @if (!string.IsNullOrEmpty(item.ItemReviewedByName))
+                                    {
+                                        <div class="text-muted" style="font-size:0.7rem">@item.ItemReviewedByName</div>
+                                    }
+                                </td>
+                                @if (canActOnItems)
+                                {
+                                    <td class="text-end">
+                                        @if (item.ItemStatus == "pending")
+                                        {
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" asp-for="AppId" />
+                                                <input type="hidden" asp-for="ReturnUrl" />
+                                                <input type="hidden" name="ItemId" value="@item.Id" />
+                                                <button type="submit" name="decision" value="approve_item"
+                                                        class="btn btn-success btn-sm"
+                                                        title="Одобрить дисциплину">&#x2713;</button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm ms-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#rejectModal"
+                                                    data-item-id="@item.Id"
+                                                    title="Отклонить">&#x2715;</button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">—</span>
+                                        }
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
                     <tfoot>
                         <tr class="fw-bold">
-                            <td colspan="2" class="text-end">Итого:</td>
+                            <td colspan="@(canActOnItems ? 4 : 3)" class="text-end">Итого:</td>
                             <td class="text-end">
                                 @(Model.App.TotalAmount == 0 ? "Бесплатно" : Model.App.TotalAmount.ToString("N0") + " тг")
                             </td>
                         </tr>
                     </tfoot>
                 </table>
+
+                @* Модальное окно отклонения дисциплины *@
+                @if (canActOnItems)
+                {
+                    <div class="modal fade" id="rejectModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post">
+                                    <input type="hidden" asp-for="AppId" />
+                                    <input type="hidden" asp-for="ReturnUrl" />
+                                    <input type="hidden" name="ItemId" id="rejectItemId" value="" />
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Отклонить дисциплину</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <label class="form-label fw-semibold">Причина отклонения</label>
+                                        <textarea name="Reason" class="form-control" rows="3"
+                                                  placeholder="Укажите причину..." required></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                        <button type="submit" name="decision" value="reject_item" class="btn btn-danger">
+                                            &#x2715; Отклонить заявление
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        document.getElementById('rejectModal').addEventListener('show.bs.modal', function(e) {
+                            document.getElementById('rejectItemId').value = e.relatedTarget.dataset.itemId;
+                        });
+                    </script>
+                }
             </div>
         </div>
     </div>
@@ -237,42 +306,21 @@
     </div>
 }
 
-@if (Model.App.Status is "pending" or "director_approved")
+@if (Model.App.Status == "pending" && Model.App.RequiresDirector)
 {
     <div class="card border-0 shadow-sm">
         <div class="card-body">
             <h6 class="text-muted text-uppercase small mb-3">Принять решение</h6>
-
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))
             {
                 <div class="alert alert-danger py-2">@Model.ErrorMessage</div>
             }
-
             <form method="post">
                 <input type="hidden" asp-for="AppId" />
                 <input type="hidden" asp-for="ReturnUrl" />
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Причина (обязательна при отклонении)</label>
-                    <textarea asp-for="Reason" class="form-control" rows="3"
-                              placeholder="Укажите причину отклонения..."></textarea>
-                </div>
-                <div class="d-flex gap-2">
-                    @if (Model.App.Status == "pending" && Model.App.RequiresDirector)
-                    {
-                        <button type="submit" name="decision" value="send_to_director" class="btn btn-primary">
-                            &#x2197; Отправить директору
-                        </button>
-                    }
-                    else
-                    {
-                        <button type="submit" name="decision" value="approved" class="btn btn-success">
-                            &#x2713; Одобрить
-                        </button>
-                    }
-                    <button type="submit" name="decision" value="rejected" class="btn btn-danger">
-                        &#x2715; Отклонить
-                    </button>
-                </div>
+                <button type="submit" name="decision" value="send_to_director" class="btn btn-primary">
+                    &#x2197; Отправить директору
+                </button>
             </form>
         </div>
     </div>

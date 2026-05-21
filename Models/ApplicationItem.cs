@@ -12,7 +12,23 @@ public class ApplicationItem
     public string? ConfirmationDocumentUrl { get; set; }
     public string? PaymentReceiptUrl { get; set; }
     public string DisciplineCode { get; set; } = string.Empty;
+    public string ItemStatus { get; set; } = "pending";
+    public int? ItemReviewedBy { get; set; }
+    public DateTime? ItemReviewedAt { get; set; }
+    public string ItemReviewedByName { get; set; } = "";
+
     public string DisciplineDisplay => string.IsNullOrEmpty(DisciplineCode)
         ? DisciplineName
         : $"{DisciplineCode} — {DisciplineName}";
+
+    public string ItemStatusBadgeClass => ItemStatus switch {
+        "approved" => "bg-success",
+        "rejected"  => "bg-danger",
+        _           => "bg-secondary"
+    };
+    public string ItemStatusDisplay => ItemStatus switch {
+        "approved" => "Одобрено",
+        "rejected"  => "Отклонено",
+        _           => "Ожидает"
+    };
 }

@@ -335,6 +335,47 @@ public class ApplicationService
         return (await conn.QueryAsync<DisciplineInfo>(sql)).ToList();
     }
 
+    public async Task ApproveItemAsync(int appId, int itemId, int specialistId)
+    {
+        using var conn = _db.Supabase();
+        await conn.ExecuteAsync(@"
+            UPDATE application_items
+            SET item_status = 'approved', item_reviewed_by = @specialistId, item_reviewed_at = NOW()
+            WHERE id = @itemId AND application_id = @appId",
+            new { itemId, appId, specialistId });
+
+        var pendingCount = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM application_items
+            WHERE application_id = @appId AND COALESCE(item_status, 'pending') <> 'approved'",
+            new { appId });
+
+        if (pendingCount == 0)
+        {
+            await conn.ExecuteAsync(@"
+                UPDATE applications
+                SET status = 'approved', reviewed_at = NOW(), reviewed_by = @specialistId
+                WHERE id = @appId",
+                new { appId, specialistId });
+        }
+    }
+
+    public async Task RejectItemAsync(int appId, int itemId, string? reason, int specialistId)
+    {
+        using var conn = _db.Supabase();
+        await conn.ExecuteAsync(@"
+            UPDATE application_items
+            SET item_status = 'rejected', item_reviewed_by = @specialistId, item_reviewed_at = NOW()
+            WHERE id = @itemId AND application_id = @appId",
+            new { itemId, appId, specialistId });
+
+        await conn.ExecuteAsync(@"
+            UPDATE applications
+            SET status = 'rejected', rejection_reason = @reason,
+                reviewed_at = NOW(), reviewed_by = @specialistId
+            WHERE id = @appId",
+            new { appId, reason, specialistId });
+    }
+
     private static async Task<List<ApplicationItem>> GetItemsAsync(NpgsqlConnection conn, int appId)
     {
         const string sql = @"
@@ -342,8 +383,14 @@ public class ApplicationService
                    COALESCE((SELECT discipline_code FROM grades WHERE discipline_name = ai.discipline_name LIMIT 1), '') AS DisciplineCode,
                    ai.grade, ai.credits, ai.cost_per_credit AS CostPerCredit, ai.total_cost AS TotalCost,
                    ai.confirmation_document_url AS ConfirmationDocumentUrl,
-                   ai.payment_receipt_url AS PaymentReceiptUrl
-            FROM application_items ai WHERE ai.application_id = @appId ORDER BY ai.id";
+                   ai.payment_receipt_url AS PaymentReceiptUrl,
+                   COALESCE(ai.item_status, 'pending') AS ItemStatus,
+                   ai.item_reviewed_by AS ItemReviewedBy,
+                   ai.item_reviewed_at AS ItemReviewedAt,
+                   COALESCE(sp.full_name, '') AS ItemReviewedByName
+            FROM application_items ai
+            LEFT JOIN specialists sp ON sp.id = ai.item_reviewed_by
+            WHERE ai.application_id = @appId ORDER BY ai.id";
         return (await conn.QueryAsync<ApplicationItem>(sql, new { appId })).ToList();
     }
 }

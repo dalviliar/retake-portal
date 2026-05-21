@@ -11,6 +11,7 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
 
     public Application? App { get; set; }
     [BindProperty] public int AppId { get; set; }
+    [BindProperty] public int ItemId { get; set; }
     [BindProperty] public string? Reason { get; set; }
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
     public string? ErrorMessage { get; set; }
@@ -31,6 +32,24 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
     public async Task<IActionResult> OnPostAsync(string decision)
     {
         App = await _apps.GetApplicationByIdAsync(AppId);
+
+        if (decision == "approve_item")
+        {
+            await _apps.ApproveItemAsync(AppId, ItemId, SpecialistId);
+            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId, returnUrl = ReturnUrl });
+        }
+
+        if (decision == "reject_item")
+        {
+            if (string.IsNullOrWhiteSpace(Reason))
+            {
+                App = await _apps.GetApplicationByIdAsync(AppId);
+                ErrorMessage = "При отклонении необходимо указать причину";
+                return Page();
+            }
+            await _apps.RejectItemAsync(AppId, ItemId, Reason?.Trim(), SpecialistId);
+            return BackToDashboard();
+        }
 
         if (decision == "schedule")
         {
