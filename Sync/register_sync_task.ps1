@@ -17,30 +17,25 @@ $action = New-ScheduledTaskAction `
     -Execute  "powershell.exe" `
     -Argument "-NonInteractive -ExecutionPolicy Bypass -File `"$scriptPath`""
 
-# Триггер: каждые 15 минут, 16 часов в сутки (06:00–22:00)
-$trigger = New-ScheduledTaskTrigger `
-    -Once `
-    -At                 "06:00" `
-    -RepetitionInterval (New-TimeSpan -Minutes 15) `
-    -RepetitionDuration (New-TimeSpan -Hours 16)
+# Удалить старую задачу если есть
+schtasks /delete /tn $taskName /f 2>$null | Out-Null
 
-# Настройки
-$settings = New-ScheduledTaskSettingsSet `
-    -ExecutionTimeLimit (New-TimeSpan -Minutes 10) `
-    -MultipleInstances  IgnoreNew `
-    -StartWhenAvailable
+# Регистрация через schtasks.exe — каждые 15 минут с 06:00 до 22:00 каждый день
+$psExe    = "$env:SystemRoot\system32\WindowsPowerShell\v1.0\powershell.exe"
+$taskArgs = "-NonInteractive -ExecutionPolicy Bypass -File `"$scriptPath`""
 
-# Регистрация — запускается от имени доменного пользователя без активной сессии
-Register-ScheduledTask `
-    -TaskName    $taskName `
-    -Description "Синхронизация студентов, оценок и расписания из SSO (KazNITU) в Supabase" `
-    -Action      $action `
-    -Trigger     $trigger `
-    -Settings    $settings `
-    -RunLevel    Highest `
-    -User        "KAZNITU\s.berdibekov" `
-    -Password    "1Dalvi12909891*" `
-    -Force
+schtasks /create `
+    /tn  $taskName `
+    /tr  "`"$psExe`" $taskArgs" `
+    /sc  DAILY `
+    /st  "06:00" `
+    /et  "22:00" `
+    /ri  15 `
+    /du  "0016:00" `
+    /ru  "KAZNITU\s.berdibekov" `
+    /rp  "1Dalvi12909891*" `
+    /rl  HIGHEST `
+    /f
 
 Write-Host ""
 Write-Host "Задача '$taskName' зарегистрирована." -ForegroundColor Green
