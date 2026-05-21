@@ -33,9 +33,6 @@
             <p class="text-muted small mb-3">ИИН: <strong>@Model.IINInput</strong></p>
             @foreach (var app in Model.Applications)
             {
-                @* Determine route type *@
-                bool isFxOnly = app.Items.All(i => i.Grade == "FX");
-                bool hasDirectorGrades = app.Items.Any(i => i.Grade is "F" or "I");
                 bool isPaid = app.PaymentType == "paid";
 
                 <div class="card border-0 shadow-sm mb-4">
@@ -48,165 +45,117 @@
                     </div>
                     <div class="card-body">
 
-                        @* Route progress *@
-                        <div class="mb-4">
-                            @if (isFxOnly)
-                            {
-                                @* FX route: Подача → ОР → Одобрено → Пересдача *@
-                                bool fxHasSchedule = app.Items.Any(i => Model.RetakeSchedules
-                                    .Any(s => s.DisciplineName == i.DisciplineName && s.ExamDate != null));
-                                var steps = new[] {
-                                    ("Подача", new[]{"pending","pending_director","director_approved","pending_payment","payment_submitted","approved","rejected","scheduled"}),
-                                    ("Специалист ОР", new[]{"approved","rejected","scheduled"}),
-                                    ("Одобрено", new[]{"approved","scheduled"}),
-                                    ("Пересдача", new[]{"scheduled"})
-                                };
-                                <div class="d-flex align-items-center gap-0 mb-1">
-                                    @foreach (var (label, activeStatuses) in steps)
+                        @* ── Прогресс по каждой дисциплине отдельно ── *@
+                        @foreach (var item in app.Items)
+                        {
+                            var sched = Model.RetakeSchedules
+                                .FirstOrDefault(s => s.DisciplineName == item.DisciplineName);
+                            var gradeClass = item.Grade switch {
+                                "F"  => "bg-danger",
+                                "I"  => "bg-info text-dark",
+                                _    => "bg-warning text-dark"
+                            };
+                            bool needsDirector = item.Grade is "F" or "I";
+                            bool itemApproved  = item.ItemStatus == "approved";
+                            bool itemScheduled = sched?.ExamDate != null;
+                            bool dirDone = app.Status is "director_approved" or "pending_payment"
+                                                       or "payment_submitted" or "approved" or "rejected";
+                            bool payDone = app.Status is "payment_submitted" or "approved";
+
+                            @* Build steps for this item *@
+                            (string Label, bool Done)[] itemSteps = needsDirector
+                                ? (isPaid
+                                    ? new[] {
+                                        ("Подача",     true),
+                                        ("Директор",   dirDone),
+                                        ("Оплата",     payDone),
+                                        ("Проверка",   itemApproved),
+                                        ("Пересдача",  itemScheduled)
+                                      }
+                                    : new[] {
+                                        ("Подача",     true),
+                                        ("Директор",   dirDone),
+                                        ("Специалист", itemApproved),
+                                        ("Пересдача",  itemScheduled)
+                                      })
+                                : new[] {
+                                    ("Подача",        true),
+                                    ("Специалист ОР", itemApproved),
+                                    ("Пересдача",     itemScheduled)
+                                  };
+
+                            <div class="border rounded p-3 mb-3">
+                                @* Заголовок дисциплины *@
+                                <div class="d-flex align-items-start justify-content-between mb-3">
+                                    <div>
+                                        @if (!string.IsNullOrEmpty(item.DisciplineCode))
+                                        {
+                                            <span class="text-muted font-monospace small d-block">@item.DisciplineCode</span>
+                                        }
+                                        <span class="fw-semibold">@item.DisciplineName</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 ms-3 flex-shrink-0">
+                                        <span class="badge @gradeClass">@item.Grade</span>
+                                        @if (item.TotalCost > 0)
+                                        {
+                                            <span class="text-muted small">@item.TotalCost.ToString("N0") тг</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                @* Мини прогресс-бар *@
+                                <div class="d-flex align-items-center mb-2">
+                                    @for (int si = 0; si < itemSteps.Length; si++)
                                     {
-                                        bool active = activeStatuses.Contains(app.Status)
-                                            || (label == "Пересдача" && fxHasSchedule && app.Status is "approved" or "scheduled");
-                                        bool current = label == "Подача" ? app.Status == "pending"
-                                            : label == "Специалист ОР" ? app.Status is "pending" or "approved" or "rejected"
-                                            : label == "Одобрено" ? app.Status == "approved"
-                                            : app.ScheduledAt.HasValue;
+                                        var (stepLabel, stepDone) = itemSteps[si];
                                         <div class="text-center" style="flex:1">
                                             <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center fw-bold"
-                                                 style="width:32px;height:32px;background:@(active?"#198754":"#dee2e6");color:@(active?"white":"#6c757d")">
-                                                @(active ? "✓" : "·")
+                                                 style="width:28px;height:28px;background:@(stepDone?"#198754":"#dee2e6");color:@(stepDone?"white":"#6c757d");font-size:0.75rem">
+                                                @(stepDone ? "✓" : "·")
                                             </div>
-                                            <div class="small mt-1" style="font-size:0.7rem;color:@(active?"#198754":"#6c757d")">@label</div>
+                                            <div class="mt-1" style="font-size:0.65rem;color:@(stepDone?"#198754":"#6c757d")">@stepLabel</div>
                                         </div>
-                                        @if (label != "Пересдача")
+                                        @if (si < itemSteps.Length - 1)
                                         {
-                                            <div style="flex:0.3;height:2px;background:@(active?"#198754":"#dee2e6");margin-bottom:20px"></div>
+                                            <div style="flex:0.3;height:2px;background:@(stepDone?"#198754":"#dee2e6");margin-bottom:18px"></div>
                                         }
                                     }
                                 </div>
-                            }
-                            else
-                            {
-                                @* F/I route: Подача → Директор → (Оплата →) Специалист → Пересдача *@
-                                var s = app.Status;
-                                var routeSteps = isPaid
-                                    ? new[] { "Подача", "Директор", "Оплата", "Проверка", "Пересдача" }
-                                    : new[] { "Подача", "Директор", "Специалист", "Пересдача" };
 
-                                bool StepDone(string step) => step switch {
-                                    "Подача"    => true,
-                                    "Директор"  => s is "director_approved" or "pending_payment" or "payment_submitted" or "approved" or "rejected",
-                                    "Оплата"    => s is "payment_submitted" or "approved",
-                                    "Проверка"  => s == "approved",
-                                    "Специалист"=> s == "approved",
-                                    "Пересдача" => app.ScheduledAt.HasValue,
-                                    _           => false
-                                };
-
-                                bool StepCurrent(string step) => step switch {
-                                    "Подача"    => s == "pending_director",
-                                    "Директор"  => s == "pending_director",
-                                    "Оплата"    => s == "pending_payment",
-                                    "Проверка"  => s == "payment_submitted",
-                                    "Специалист"=> s == "director_approved",
-                                    "Пересдача" => s == "approved",
-                                    _           => false
-                                };
-
-                                <div class="d-flex align-items-center gap-0 mb-1">
-                                    @foreach (var step in routeSteps)
-                                    {
-                                        bool done = StepDone(step);
-                                        bool cur  = StepCurrent(step);
-                                        string bg    = done ? "#198754" : cur ? "#0d6efd" : "#dee2e6";
-                                        string color = (done || cur) ? "white" : "#6c757d";
-                                        <div class="text-center" style="flex:1">
-                                            <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center fw-bold"
-                                                 style="width:32px;height:32px;background:@bg;color:@color">
-                                                @(done ? "✓" : cur ? "●" : "·")
-                                            </div>
-                                            <div class="small mt-1" style="font-size:0.7rem;color:@(done?"#198754":cur?"#0d6efd":"#6c757d")">@step</div>
-                                        </div>
-                                        @if (step != routeSteps.Last())
-                                        {
-                                            <div style="flex:0.3;height:2px;background:@(done?"#198754":"#dee2e6");margin-bottom:20px"></div>
-                                        }
-                                    }
-                                </div>
-                            }
-                        </div>
-
-                        <table class="table table-sm mt-2">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Дисциплина</th>
-                                    <th class="text-center">Оценка</th>
-                                    <th class="text-end">Сумма</th>
-                                    @if (app.Status is "approved" or "scheduled") { <th>Дата пересдачи</th> }
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in app.Items)
+                                @* Расписание пересдачи *@
+                                @if (itemApproved && itemScheduled)
                                 {
-                                    var sched = Model.RetakeSchedules
-                                        .FirstOrDefault(s => s.DisciplineName == item.DisciplineName);
-                                    var gradeClass = item.Grade switch {
-                                        "F"  => "bg-danger",
-                                        "I"  => "bg-info text-dark",
-                                        _    => "bg-warning text-dark"
-                                    };
-                                    <tr>
-                                        <td>
-                                            @if (!string.IsNullOrEmpty(item.DisciplineCode))
-                                            {
-                                                <span class="text-muted font-monospace small d-block">@item.DisciplineCode</span>
-                                            }
-                                            @item.DisciplineName
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge @gradeClass">@item.Grade</span>
-                                        </td>
-                                        <td class="text-end">
-                                            @(item.TotalCost == 0 ? "—" : item.TotalCost.ToString("N0") + " тг")
-                                        </td>
-                                        @if (app.Status is "approved" or "scheduled")
+                                    <div class="mt-2 px-2 py-2 rounded" style="background:#f0fdf4">
+                                        <span class="fw-semibold text-success">
+                                            @sched!.ExamDate!.Value.ToString("dd.MM.yyyy")
+                                        </span>
+                                        <span class="text-muted small ms-2">
+                                            @sched.StartTime–@sched.EndTime
+                                        </span>
+                                        @if (!string.IsNullOrEmpty(sched.Room))
                                         {
-                                            <td>
-                                                @if (sched?.ExamDate != null)
-                                                {
-                                                    <span class="fw-semibold text-success">
-                                                        @sched.ExamDate.Value.ToString("dd.MM.yyyy")
-                                                    </span>
-                                                    <span class="text-muted small ms-1">
-                                                        @sched.StartTime–@sched.EndTime
-                                                    </span>
-                                                    @if (!string.IsNullOrEmpty(sched.Room))
-                                                    {
-                                                        <div class="text-muted small">
-                                                            @sched.Building, ауд. @sched.Room
-                                                        </div>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted small">Уточняется</span>
-                                                }
-                                            </td>
+                                            <span class="text-muted small ms-2">
+                                                @sched.Building, ауд. @sched.Room
+                                            </span>
                                         }
-                                    </tr>
+                                    </div>
                                 }
-                            </tbody>
-                            @if (app.TotalAmount > 0)
-                            {
-                                <tfoot>
-                                    <tr class="fw-bold">
-                                        <td colspan="2" class="text-end">Итого:</td>
-                                        <td class="text-end">@app.TotalAmount.ToString("N0") тг</td>
-                                    </tr>
-                                </tfoot>
-                            }
-                        </table>
+                                else if (itemApproved)
+                                {
+                                    <div class="text-muted small mt-2">Расписание уточняется...</div>
+                                }
+                            </div>
+                        }
 
-                        @* Status-specific messages *@
+                        @* Итого *@
+                        @if (app.TotalAmount > 0)
+                        {
+                            <div class="text-end fw-bold border-top pt-2">
+                                Итого: @app.TotalAmount.ToString("N0") тг
+                            </div>
+                        }
+
+                        @* ── Сообщения по статусу заявки ── *@
                         @if (app.Status == "pending_director")
                         {
                             <div class="alert alert-info py-2 mt-3 mb-0">
@@ -270,26 +219,6 @@
                                 <strong>Директор одобрил.</strong>
                                 Пересдача бесплатная — ожидайте назначения расписания.
                             </div>
-                        }
-                        else if (app.Status is "approved" or "scheduled")
-                        {
-                            @if (Model.RetakeSchedules.Any(s => app.Items.Any(i => i.DisciplineName == s.DisciplineName && s.ExamDate != null)))
-                            {
-                                <div class="alert alert-success py-2 mt-3 mb-0">
-                                    <strong>Расписание пересдачи назначено.</strong>
-                                    Дата и аудитория указаны в таблице выше.
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="alert alert-info py-2 mt-3 mb-0">
-                                    <strong>Заявление одобрено.</strong>
-                                    Пересдачи планируются <strong>28–29 мая 2026 года</strong>.
-                                    Точное расписание (дата, время, аудитория) будет доступно
-                                    с <strong>18 мая</strong> — следите за обновлениями на этой странице
-                                    или в платформе SSO.
-                                </div>
-                            }
                         }
                         else if (app.Status == "rejected")
                         {
