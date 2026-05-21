@@ -38,8 +38,12 @@ public class DashboardModel : Pages.StudentPageModel
         foreach (var g in Grades)
             g.IsExpelled = expelledDisciplines.Contains(g.DisciplineName);
 
-        HasPendingApplication = await _apps.HasPendingApplicationAsync(StudentIIN);
-        IsExpelledFromAll = Grades.Any() && Grades.All(g => g.IsExpelled);
+        var alreadyApplied = await _apps.GetAppliedDisciplinesAsync(StudentIIN);
+        foreach (var g in Grades)
+            g.IsAlreadyApplied = alreadyApplied.Contains(g.DisciplineName);
+
+        HasPendingApplication = alreadyApplied.Count > 0;
+        IsExpelledFromAll = Grades.Any() && Grades.All(g => g.IsExpelled || g.IsAlreadyApplied);
 
         return Page();
     }
