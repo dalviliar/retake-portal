@@ -257,7 +257,8 @@ else
                                 {
                                     <span class="badge bg-warning text-dark ms-1" title="Акт нарушения">⚠</span>
                                 }
-                                @if (app.Items.Any(i => i.HasBrokenReceipt || i.HasBrokenConfirmation))
+                                @if (app.Status is "pending" or "pending_director" or "director_approved"
+                                     && app.Items.Any(i => i.HasBrokenReceipt || i.HasBrokenConfirmation))
                                 {
                                     <span style="font-size:0.5rem;color:#fd7e14;vertical-align:middle" title="Файлы не загружены — ожидается повторная загрузка от студента">●</span>
                                 }
