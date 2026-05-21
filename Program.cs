@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.Extensions.Caching.Distributed;
 using RetakePortal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,14 +8,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromHours(4);
+    options.IdleTimeout = TimeSpan.FromHours(8);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.MaxAge = TimeSpan.FromDays(1);
 });
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<DatabaseService>();
+
+// Persist Data Protection keys to PostgreSQL so they survive Render.com restarts
+builder.Services.AddSingleton<IXmlRepository, PostgresXmlRepository>();
 builder.Services.AddDataProtection().SetApplicationName("RetakePortal");
+
+// Persist sessions to PostgreSQL so specialists stay logged in after restarts
+builder.Services.AddSingleton<IDistributedCache, PostgresDistributedCache>();
 builder.Services.AddScoped<SsoService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApplicationService>();
