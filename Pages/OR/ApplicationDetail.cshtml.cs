@@ -36,7 +36,7 @@ public class ApplicationDetailModel : Pages.ORSpecialistPageModel
         if (decision == "approve_item")
         {
             await _apps.ApproveItemAsync(AppId, ItemId, SpecialistId);
-            return RedirectToPage("/OR/ApplicationDetail", new { id = AppId, returnUrl = ReturnUrl });
+            return BackToDashboard();
         }
 
         if (decision == "reject_item")
