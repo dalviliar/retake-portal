@@ -257,6 +257,10 @@ else
                                 {
                                     <span class="badge bg-warning text-dark ms-1" title="Акт нарушения">⚠</span>
                                 }
+                                @if (app.Items.Any(i => i.HasBrokenReceipt || i.HasBrokenConfirmation))
+                                {
+                                    <span class="badge bg-danger ms-1" title="Файлы потеряны — студент должен загрузить повторно">📎</span>
+                                }
                             </td>
                             <td class="small">
                                 @if (!string.IsNullOrEmpty(app.ReviewedByName))
