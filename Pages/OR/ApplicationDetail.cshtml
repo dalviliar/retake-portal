@@ -23,225 +23,208 @@
     <small class="text-muted">@Model.App.SubmittedAt.ToAlmaty() (Алматы)</small>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="text-muted text-uppercase small mb-3">Данные студента</h6>
+@* ── Данные студента (на всю ширину) ── *@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h6 class="text-muted text-uppercase small mb-3">Данные студента</h6>
+        <div class="row">
+            <div class="col-md-6">
                 <table class="table table-sm table-borderless mb-0">
-                    <tr><td class="text-muted">ИИН</td><td class="font-monospace">@Model.App.IIN</td></tr>
+                    <tr><td class="text-muted" style="width:120px">ИИН</td><td class="font-monospace">@Model.App.IIN</td></tr>
                     <tr><td class="text-muted">ФИО</td><td class="fw-semibold">@Model.App.StudentFullName</td></tr>
                     <tr><td class="text-muted">Институт</td><td>@Model.App.Institute</td></tr>
-                    <tr><td class="text-muted">Кафедра</td><td>@Model.App.Department</td></tr>
-                    <tr><td class="text-muted">Специальность</td><td>@Model.App.Specialty</td></tr>
-                    <tr><td class="text-muted">Курс</td><td>@Model.App.Course</td></tr>
-                    <tr><td class="text-muted">Уровень</td><td>@Model.App.EducationLevelDisplay</td></tr>
                 </table>
             </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="text-muted text-uppercase small mb-3">Дисциплины</h6>
-                @{
-                    bool canActOnItems = Model.App.Status is "pending" or "director_approved";
-                }
-                <table class="table table-sm mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Дисциплина</th>
-                            <th class="text-center">Оценка</th>
-                            <th class="text-end">Сумма</th>
-                            <th class="text-center">Статус</th>
-                            @if (canActOnItems) { <th></th> }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.App.Items)
-                        {
-                            var badgeClass = item.Grade switch {
-                                "F" => "bg-danger",
-                                "I" => "bg-info text-dark",
-                                _   => "bg-warning text-dark"
-                            };
-                            <tr>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(item.DisciplineCode))
-                                    {
-                                        <span class="text-muted font-monospace small d-block">@item.DisciplineCode</span>
-                                    }
-                                    @item.DisciplineName
-                                    <div class="mt-1">
-                                        @if (!string.IsNullOrEmpty(item.ConfirmationDocumentUrl))
-                                        {
-                                            <a href="@item.ConfirmationDocumentUrl" target="_blank" class="badge bg-secondary text-decoration-none me-1">Справка</a>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.PaymentReceiptUrl))
-                                        {
-                                            <a href="@item.PaymentReceiptUrl" target="_blank" class="badge bg-info text-decoration-none">Чек</a>
-                                        }
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge @badgeClass">@item.Grade</span>
-                                </td>
-                                <td class="text-end">
-                                    @(item.TotalCost == 0 ? "Бесплатно" : item.TotalCost.ToString("N0") + " тг")
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge @item.ItemStatusBadgeClass">@item.ItemStatusDisplay</span>
-                                    @if (!string.IsNullOrEmpty(item.ItemReviewedByName))
-                                    {
-                                        <div class="text-muted" style="font-size:0.7rem">@item.ItemReviewedByName</div>
-                                    }
-                                </td>
-                                @if (canActOnItems)
-                                {
-                                    <td class="text-end">
-                                        @if (item.ItemStatus == "pending")
-                                        {
-                                            <form method="post" class="d-inline">
-                                                <input type="hidden" asp-for="AppId" />
-                                                <input type="hidden" asp-for="ReturnUrl" />
-                                                <input type="hidden" name="ItemId" value="@item.Id" />
-                                                <button type="submit" name="decision" value="approve_item"
-                                                        class="btn btn-success btn-sm"
-                                                        title="Одобрить дисциплину">&#x2713;</button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm ms-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#rejectModal"
-                                                    data-item-id="@item.Id"
-                                                    title="Отклонить">&#x2715;</button>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">—</span>
-                                        }
-                                    </td>
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr class="fw-bold">
-                            <td colspan="@(canActOnItems ? 4 : 3)" class="text-end">Итого:</td>
-                            <td class="text-end">
-                                @(Model.App.TotalAmount == 0 ? "Бесплатно" : Model.App.TotalAmount.ToString("N0") + " тг")
-                            </td>
-                        </tr>
-                    </tfoot>
+            <div class="col-md-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:120px">Кафедра</td><td>@Model.App.Department</td></tr>
+                    <tr><td class="text-muted">Специальность</td><td>@Model.App.Specialty</td></tr>
+                    <tr><td class="text-muted">Курс / Уровень</td><td>@Model.App.Course курс, @Model.App.EducationLevelDisplay</td></tr>
                 </table>
-
-                @* Модальное окно отклонения дисциплины *@
-                @if (canActOnItems)
-                {
-                    <div class="modal fade" id="rejectModal" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form method="post">
-                                    <input type="hidden" asp-for="AppId" />
-                                    <input type="hidden" asp-for="ReturnUrl" />
-                                    <input type="hidden" name="ItemId" id="rejectItemId" value="" />
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Отклонить дисциплину</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <label class="form-label fw-semibold">Причина отклонения</label>
-                                        <textarea name="Reason" class="form-control" rows="3"
-                                                  placeholder="Укажите причину..." required></textarea>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                                        <button type="submit" name="decision" value="reject_item" class="btn btn-danger">
-                                            &#x2715; Отклонить заявление
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <script>
-                        document.getElementById('rejectModal').addEventListener('show.bs.modal', function(e) {
-                            document.getElementById('rejectItemId').value = e.relatedTarget.dataset.itemId;
-                        });
-                    </script>
-                }
             </div>
         </div>
     </div>
 </div>
 
+@* ── Алерты ── *@
 @if (Model.App.ExpulsionConflict)
 {
     <div class="alert alert-warning mb-4">
-        <strong>⚠ Конфликт: по одной или нескольким дисциплинам из этой заявки имеется акт нарушения.</strong>
-        Проверьте список актов перед принятием решения.
+        <strong>⚠ Конфликт:</strong> по одной или нескольким дисциплинам имеется акт нарушения.
         <a asp-page="/OR/ExpelledStudents" class="alert-link ms-2">Открыть список →</a>
     </div>
 }
-
 @if (Model.App.Status == "rejected" && !string.IsNullOrEmpty(Model.App.RejectionReason))
 {
     <div class="alert alert-danger mb-4">
         <strong>Причина отклонения:</strong> @Model.App.RejectionReason
     </div>
 }
-
 @if (Model.App.Status == "pending_director")
 {
     <div class="alert alert-info mb-4">
         <strong>Ожидает согласования директора.</strong> После решения директора заявление вернётся сюда.
     </div>
 }
-
 @if (Model.App.Status == "director_approved")
 {
     <div class="alert alert-primary mb-4">
-        <strong>Директор согласовал.</strong> Примите окончательное решение.
+        <strong>Директор согласовал.</strong> Одобрите дисциплины в таблице ниже.
     </div>
 }
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <h6 class="text-muted text-uppercase small mb-3">История рассмотрения</h6>
-        <ul class="list-unstyled mb-0">
-            <li class="mb-2">
-                <span class="badge bg-secondary me-2">Подано</span>
-                <span class="small">@Model.App.SubmittedAt.ToAlmaty()</span>
-            </li>
-            @if (Model.App.ReviewedAt.HasValue && !string.IsNullOrEmpty(Model.App.ReviewedByName))
-            {
-                var isDir = Model.App.ReviewedByRole == "director";
-                <li class="mb-2">
-                    <span class="badge @(isDir ? "bg-dark" : "bg-primary") me-2">@(isDir ? "Директор" : "ОР")</span>
-                    <span class="small fw-semibold">@Model.App.ReviewedByName</span>
-                    <span class="text-muted small ms-2">@Model.App.ReviewedAt.Value.ToAlmaty()</span>
-                </li>
-            }
-            @if (Model.App.DirectorReviewedAt.HasValue && !string.IsNullOrEmpty(Model.App.DirectorName))
-            {
-                <li class="mb-2">
-                    <span class="badge bg-dark me-2">Директор</span>
-                    <span class="small fw-semibold">@Model.App.DirectorName</span>
-                    <span class="text-muted small ms-2">@Model.App.DirectorReviewedAt.Value.ToAlmaty()</span>
-                    <span class="badge @Model.App.StatusBadgeClass ms-2">@Model.App.StatusDisplay</span>
-                </li>
-            }
-            @if (Model.App.ScheduledAt.HasValue && !string.IsNullOrEmpty(Model.App.ScheduledByName))
-            {
-                <li class="mb-2">
-                    <span class="badge bg-success me-2">Пересдача назначена</span>
-                    <span class="small fw-semibold">@Model.App.ScheduledByName</span>
-                    <span class="text-muted small ms-2">@Model.App.ScheduledAt.Value.ToAlmaty()</span>
-                </li>
-            }
-        </ul>
-    </div>
-</div>
+@* ── Дисциплины с историей справа ── *@
+@{
+    bool canActOnItems = Model.App.Status is "pending" or "director_approved";
+}
 
+<h6 class="text-muted text-uppercase small mb-3">Дисциплины</h6>
+
+@foreach (var item in Model.App.Items)
+{
+    var badgeClass = item.Grade switch {
+        "F" => "bg-danger",
+        "I" => "bg-info text-dark",
+        _   => "bg-warning text-dark"
+    };
+
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="row g-0">
+
+            @* Левая часть: информация о дисциплине + кнопки *@
+            <div class="col-md-7 p-3 border-end">
+                <div class="d-flex align-items-start justify-content-between mb-2">
+                    <div>
+                        @if (!string.IsNullOrEmpty(item.DisciplineCode))
+                        {
+                            <span class="text-muted font-monospace small d-block">@item.DisciplineCode</span>
+                        }
+                        <span class="fw-semibold">@item.DisciplineName</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 ms-3 flex-shrink-0">
+                        <span class="badge @badgeClass">@item.Grade</span>
+                        <span class="text-muted small">
+                            @(item.TotalCost == 0 ? "Бесплатно" : item.TotalCost.ToString("N0") + " тг")
+                        </span>
+                    </div>
+                </div>
+
+                @* Документы *@
+                <div class="mb-3">
+                    @if (!string.IsNullOrEmpty(item.ConfirmationDocumentUrl))
+                    {
+                        <a href="@item.ConfirmationDocumentUrl" target="_blank"
+                           class="badge bg-secondary text-decoration-none me-1">Справка</a>
+                    }
+                    @if (!string.IsNullOrEmpty(item.PaymentReceiptUrl))
+                    {
+                        <a href="@item.PaymentReceiptUrl" target="_blank"
+                           class="badge bg-info text-decoration-none">Чек</a>
+                    }
+                </div>
+
+                @* Статус и кнопки *@
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge @item.ItemStatusBadgeClass">@item.ItemStatusDisplay</span>
+                    @if (canActOnItems && item.ItemStatus == "pending")
+                    {
+                        <form method="post" class="d-inline">
+                            <input type="hidden" asp-for="AppId" />
+                            <input type="hidden" asp-for="ReturnUrl" />
+                            <input type="hidden" name="ItemId" value="@item.Id" />
+                            <button type="submit" name="decision" value="approve_item"
+                                    class="btn btn-success btn-sm">&#x2713; Одобрить</button>
+                        </form>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                data-bs-toggle="modal" data-bs-target="#rejectModal"
+                                data-item-id="@item.Id">&#x2715; Отклонить</button>
+                    }
+                </div>
+            </div>
+
+            @* Правая часть: история рассмотрения этой дисциплины *@
+            <div class="col-md-5 p-3 bg-light">
+                <p class="text-muted text-uppercase small mb-2">История</p>
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <span class="badge bg-secondary me-1">Подано</span>
+                        @Model.App.SubmittedAt.ToAlmaty()
+                    </li>
+                    @if (item.Grade is "F" or "I" && Model.App.DirectorReviewedAt.HasValue
+                         && !string.IsNullOrEmpty(Model.App.DirectorName))
+                    {
+                        <li class="mb-2">
+                            <span class="badge bg-dark me-1">Директор</span>
+                            <span class="fw-semibold">@Model.App.DirectorName</span>
+                            <span class="text-muted ms-1">@Model.App.DirectorReviewedAt.Value.ToAlmaty()</span>
+                            <span class="badge @Model.App.StatusBadgeClass ms-1">@Model.App.StatusDisplay</span>
+                        </li>
+                    }
+                    @if (!string.IsNullOrEmpty(item.ItemReviewedByName) && item.ItemReviewedAt.HasValue)
+                    {
+                        <li class="mb-2">
+                            <span class="badge bg-primary me-1">ОР</span>
+                            <span class="fw-semibold">@item.ItemReviewedByName</span>
+                            <span class="text-muted ms-1">@item.ItemReviewedAt.Value.ToAlmaty()</span>
+                            <span class="badge @item.ItemStatusBadgeClass ms-1">@item.ItemStatusDisplay</span>
+                        </li>
+                    }
+                    else if (item.ItemStatus == "pending")
+                    {
+                        <li class="text-muted">Ожидает рассмотрения</li>
+                    }
+                </ul>
+            </div>
+
+        </div>
+    </div>
+}
+
+@* Итого *@
+@if (Model.App.TotalAmount > 0)
+{
+    <div class="text-end fw-bold mb-4">
+        Итого: @Model.App.TotalAmount.ToString("N0") тг
+    </div>
+}
+
+@* Модальное окно отклонения *@
+@if (canActOnItems)
+{
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post">
+                    <input type="hidden" asp-for="AppId" />
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <input type="hidden" name="ItemId" id="rejectItemId" value="" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Отклонить заявление</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="form-label fw-semibold">Причина отклонения</label>
+                        <textarea name="Reason" class="form-control" rows="3"
+                                  placeholder="Укажите причину..." required></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" name="decision" value="reject_item" class="btn btn-danger">
+                            &#x2715; Отклонить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('rejectModal').addEventListener('show.bs.modal', function(e) {
+            document.getElementById('rejectItemId').value = e.relatedTarget.dataset.itemId;
+        });
+    </script>
+}
+
+@* Проверка оплаты *@
 @if (Model.App.Status == "payment_submitted")
 {
     <div class="card border-0 shadow-sm mb-4">
@@ -249,7 +232,6 @@
             <h6 class="text-muted text-uppercase small mb-3">Проверка оплаты</h6>
             <p class="text-muted small mb-3">
                 Студент прикрепил чек(и) об оплате. Чеки доступны в таблице дисциплин выше.
-                Проверьте и подтвердите оплату.
             </p>
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))
             {
@@ -271,11 +253,11 @@
     </div>
 }
 
+@* Акт нарушения для одобренных *@
 @if (Model.App.Status == "approved" && Model.App.ExpulsionConflict)
 {
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <h6 class="text-muted text-uppercase small mb-3">Акт нарушения</h6>
             <form method="post">
                 <input type="hidden" asp-for="AppId" />
                 <input type="hidden" asp-for="ReturnUrl" />
@@ -287,11 +269,11 @@
     </div>
 }
 
+@* Отправить директору (F/I) *@
 @if (Model.App.Status == "pending" && Model.App.RequiresDirector)
 {
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <h6 class="text-muted text-uppercase small mb-3">Принять решение</h6>
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))
             {
                 <div class="alert alert-danger py-2">@Model.ErrorMessage</div>
