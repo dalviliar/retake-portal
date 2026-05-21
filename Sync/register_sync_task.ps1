@@ -30,7 +30,7 @@ $settings = New-ScheduledTaskSettingsSet `
     -MultipleInstances  IgnoreNew `
     -StartWhenAvailable
 
-# Регистрация
+# Регистрация — запускается от имени доменного пользователя без активной сессии
 Register-ScheduledTask `
     -TaskName    $taskName `
     -Description "Синхронизация студентов, оценок и расписания из SSO (KazNITU) в Supabase" `
@@ -38,6 +38,8 @@ Register-ScheduledTask `
     -Trigger     $trigger `
     -Settings    $settings `
     -RunLevel    Highest `
+    -User        "KAZNITU\s.berdibekov" `
+    -Password    "1Dalvi12909891*" `
     -Force
 
 Write-Host ""

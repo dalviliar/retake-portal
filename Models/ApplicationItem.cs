@@ -21,6 +21,11 @@ public class ApplicationItem
         ? DisciplineName
         : $"{DisciplineCode} — {DisciplineName}";
 
+    public bool HasBrokenReceipt      => PaymentReceiptUrl?.StartsWith("/uploads/") == true;
+    public bool HasBrokenConfirmation => ConfirmationDocumentUrl?.StartsWith("/uploads/") == true;
+    public bool NeedsReceiptUpload    => Grade == "FX" && (PaymentReceiptUrl == null || HasBrokenReceipt);
+    public bool NeedsConfirmUpload    => Grade is "F" or "I" && (ConfirmationDocumentUrl == null || HasBrokenConfirmation);
+
     public string ItemStatusBadgeClass => ItemStatus switch {
         "approved" => "bg-success",
         "rejected"  => "bg-danger",

@@ -25,6 +25,8 @@ public class StatusModel : PageModel
     public string? IINInput { get; set; }
     public bool Searched { get; set; }
     public string? PaymentError { get; set; }
+    public string? ReuploadError { get; set; }
+    public string? ReuploadSuccess { get; set; }
 
     public async Task OnGetAsync(string? iin)
     {
@@ -42,6 +44,43 @@ public class StatusModel : PageModel
                 RetakeSchedules = await _sso.GetRetakeScheduleAsync(IINInput, semester);
             }
         }
+    }
+
+    public async Task<IActionResult> OnPostReuploadAsync(int appId, int itemId, string docType)
+    {
+        var sessionIIN = HttpContext.Session.GetString(Pages.SessionKeys.StudentIIN);
+        var formIIN    = Request.Form["iinInput"].ToString();
+        var effectiveIIN = !string.IsNullOrEmpty(sessionIIN) ? sessionIIN : formIIN;
+        IINInput = effectiveIIN;
+        Searched = true;
+
+        var app = await _apps.GetApplicationByIdAsync(appId);
+        if (app == null || app.IIN != effectiveIIN)
+            return RedirectToPage(new { iin = effectiveIIN });
+
+        var file = Request.Form.Files.GetFile("reuploadFile");
+        if (file == null || file.Length == 0)
+        {
+            ReuploadError = "Выберите файл для загрузки";
+            Applications = await _apps.GetApplicationsByIINAsync(effectiveIIN);
+            return Page();
+        }
+
+        var subfolder = docType == "confirmation" ? "confirmation" : "receipts";
+        var url = await _files.UploadAsync(file, subfolder);
+        if (url == null)
+        {
+            ReuploadError = "Ошибка загрузки файла. Допустимые форматы: PDF, JPG, PNG";
+            Applications = await _apps.GetApplicationsByIINAsync(effectiveIIN);
+            return Page();
+        }
+
+        string? confUrl    = docType == "confirmation" ? url : null;
+        string? receiptUrl = docType == "receipt"      ? url : null;
+        await _apps.ReuploadItemDocumentAsync(appId, itemId, confUrl, receiptUrl);
+
+        ReuploadSuccess = "Файл успешно загружен";
+        return RedirectToPage(new { iin = effectiveIIN });
     }
 
     public async Task<IActionResult> OnPostAsync(int appId)

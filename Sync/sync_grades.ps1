@@ -87,6 +87,7 @@ WHERE smc.SemesterID = $SEMESTER_ID
   AND CAST(u.IIN AS NVARCHAR(20)) <> ''
   AND s.StatusID IS NOT NULL
   AND s.StatusID <> 2
+  AND exz.ExamDate >= CAST(GETDATE() AS DATE)
 "@
 
 Add-Type -AssemblyName System.Data
@@ -193,12 +194,12 @@ $schedules = Invoke-SqlQuery -Query $scheduleQuery
 $rawCount  = @($schedules).Count
 Write-Host "  Raw rows from SSO (before dedup): $rawCount"
 
-# Дедупликация: берём запись с max exam_id (пересдача) только для студентов с 2+ записями по дисциплине
+# Дедупликация: берём запись с max exam_id для каждого студента/дисциплины
+# Фильтр по дате (>= сегодня) уже в SQL, поэтому Count-gt-1 не нужен
 $scheduleRows = @(
     $schedules |
     Where-Object { $_ -ne $null -and (Format-Field $_.student_iin) -ne "" } |
     Group-Object { "$(Format-Field $_.student_iin)|$(Format-Field $_.discipline_name)" } |
-    Where-Object { $_.Count -gt 1 } |
     ForEach-Object {
         $row = $_.Group | Sort-Object { [int]$_.exam_id } -Descending | Select-Object -First 1
         $ed = Format-Field $row.exam_date

@@ -144,6 +144,36 @@
                                 {
                                     <div class="text-muted small mt-2">Расписание уточняется...</div>
                                 }
+
+                                @* Повторная загрузка потерянных файлов *@
+                                @if (item.NeedsReceiptUpload && app.Status is "pending" or "pending_director" or "director_approved")
+                                {
+                                    <div class="mt-2 p-2 rounded border border-warning bg-warning bg-opacity-10">
+                                        <div class="small text-warning fw-semibold mb-1">⚠ Чек об оплате недоступен — загрузите повторно</div>
+                                        <form method="post" asp-page-handler="Reupload" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+                                            <input type="hidden" name="appId" value="@app.Id" />
+                                            <input type="hidden" name="itemId" value="@item.Id" />
+                                            <input type="hidden" name="docType" value="receipt" />
+                                            <input type="hidden" name="iinInput" value="@Model.IINInput" />
+                                            <input type="file" name="reuploadFile" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required style="max-width:260px" />
+                                            <button type="submit" class="btn btn-warning btn-sm">Загрузить</button>
+                                        </form>
+                                    </div>
+                                }
+                                @if (item.NeedsConfirmUpload && app.Status is "pending" or "pending_director")
+                                {
+                                    <div class="mt-2 p-2 rounded border border-warning bg-warning bg-opacity-10">
+                                        <div class="small text-warning fw-semibold mb-1">⚠ Справка недоступна — загрузите повторно</div>
+                                        <form method="post" asp-page-handler="Reupload" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+                                            <input type="hidden" name="appId" value="@app.Id" />
+                                            <input type="hidden" name="itemId" value="@item.Id" />
+                                            <input type="hidden" name="docType" value="confirmation" />
+                                            <input type="hidden" name="iinInput" value="@Model.IINInput" />
+                                            <input type="file" name="reuploadFile" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required style="max-width:260px" />
+                                            <button type="submit" class="btn btn-warning btn-sm">Загрузить</button>
+                                        </form>
+                                    </div>
+                                }
                             </div>
                         }
 

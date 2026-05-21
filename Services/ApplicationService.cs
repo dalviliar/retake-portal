@@ -191,6 +191,19 @@ public class ApplicationService
             new { id, disciplineName, receiptUrl });
     }
 
+    public async Task ReuploadItemDocumentAsync(int appId, int itemId, string? confirmationUrl, string? receiptUrl)
+    {
+        using var conn = _db.Supabase();
+        if (confirmationUrl != null)
+            await conn.ExecuteAsync(
+                "UPDATE application_items SET confirmation_document_url = @confirmationUrl WHERE id = @itemId AND application_id = @appId",
+                new { confirmationUrl, itemId, appId });
+        if (receiptUrl != null)
+            await conn.ExecuteAsync(
+                "UPDATE application_items SET payment_receipt_url = @receiptUrl WHERE id = @itemId AND application_id = @appId",
+                new { receiptUrl, itemId, appId });
+    }
+
     public async Task SetPaymentSubmittedAsync(int id)
     {
         using var conn = _db.Supabase();

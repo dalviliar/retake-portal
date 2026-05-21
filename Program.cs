@@ -18,6 +18,7 @@ builder.Services.AddScoped<SsoService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApplicationService>();
 builder.Services.AddScoped<ExpelledStudentService>();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<FileUploadService>();
 builder.Services.AddScoped<ImportService>();
 
