@@ -271,36 +271,17 @@
     </div>
 }
 
-@if (Model.App.Status == "approved" && !Model.App.ScheduledAt.HasValue)
+@if (Model.App.Status == "approved" && Model.App.ExpulsionConflict)
 {
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <h6 class="text-muted text-uppercase small mb-3">Назначение пересдачи</h6>
-            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-            {
-                <div class="alert alert-danger py-2">@Model.ErrorMessage</div>
-            }
-            <p class="text-muted small mb-3">Заявление одобрено. Подтвердите назначение пересдачи студенту.</p>
+            <h6 class="text-muted text-uppercase small mb-3">Акт нарушения</h6>
             <form method="post">
                 <input type="hidden" asp-for="AppId" />
                 <input type="hidden" asp-for="ReturnUrl" />
-                @if (Model.App.ExpulsionConflict)
-                {
-                    <div class="d-flex gap-2">
-                        <button type="submit" name="decision" value="schedule" class="btn btn-success btn-sm">
-                            &#x2713; Пересдача назначена
-                        </button>
-                        <button type="submit" name="decision" value="rejected" class="btn btn-danger btn-sm">
-                            &#x2715; Отклонить (акт нарушения)
-                        </button>
-                    </div>
-                }
-                else
-                {
-                    <button type="submit" name="decision" value="schedule" class="btn btn-success">
-                        &#x2713; Пересдача назначена
-                    </button>
-                }
+                <button type="submit" name="decision" value="rejected" class="btn btn-danger btn-sm">
+                    &#x2715; Отклонить (акт нарушения)
+                </button>
             </form>
         </div>
     </div>
