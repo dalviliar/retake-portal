@@ -335,8 +335,13 @@ public class ApplicationService
             {where} ORDER BY a.submitted_at DESC LIMIT @limit OFFSET @offset";
 
         var apps = (await conn.QueryAsync<Application>(sql, p)).ToList();
-        foreach (var app in apps)
-            app.Items = await GetItemsAsync(conn, app.Id);
+        if (apps.Count > 0)
+        {
+            var ids = apps.Select(a => a.Id).ToArray();
+            var allItems = await GetItemsBatchAsync(conn, ids);
+            foreach (var app in apps)
+                app.Items = allItems.GetValueOrDefault(app.Id, []);
+        }
         return (apps, total);
     }
 
@@ -410,6 +415,27 @@ public class ApplicationService
             LEFT JOIN specialists sp ON sp.id = ai.item_reviewed_by
             WHERE ai.application_id = @appId ORDER BY ai.id";
         return (await conn.QueryAsync<ApplicationItem>(sql, new { appId })).ToList();
+    }
+
+    private static async Task<Dictionary<int, List<ApplicationItem>>> GetItemsBatchAsync(
+        NpgsqlConnection conn, int[] appIds)
+    {
+        const string sql = @"
+            SELECT ai.id, ai.application_id AS ApplicationId, ai.discipline_name AS DisciplineName,
+                   COALESCE((SELECT discipline_code FROM grades WHERE discipline_name = ai.discipline_name LIMIT 1), '') AS DisciplineCode,
+                   ai.grade, ai.credits, ai.cost_per_credit AS CostPerCredit, ai.total_cost AS TotalCost,
+                   ai.confirmation_document_url AS ConfirmationDocumentUrl,
+                   ai.payment_receipt_url AS PaymentReceiptUrl,
+                   COALESCE(ai.item_status, 'pending') AS ItemStatus,
+                   ai.item_reviewed_by AS ItemReviewedBy,
+                   ai.item_reviewed_at AS ItemReviewedAt,
+                   COALESCE(sp.full_name, '') AS ItemReviewedByName
+            FROM application_items ai
+            LEFT JOIN specialists sp ON sp.id = ai.item_reviewed_by
+            WHERE ai.application_id = ANY(@appIds)
+            ORDER BY ai.application_id, ai.id";
+        var rows = await conn.QueryAsync<ApplicationItem>(sql, new { appIds });
+        return rows.GroupBy(r => r.ApplicationId).ToDictionary(g => g.Key, g => g.ToList());
     }
 }
 
