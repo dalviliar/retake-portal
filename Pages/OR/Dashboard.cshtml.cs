@@ -21,11 +21,14 @@ public class DashboardModel : Pages.ORSpecialistPageModel
     public int TotalCount { get; set; }
     private const int PageSize = 50;
 
-    public async Task<IActionResult> OnGetAsync(string? status, List<string>? disciplines, List<string>? depts, int p = 1)
+    public string IINSearch { get; set; } = "";
+
+    public async Task<IActionResult> OnGetAsync(string? status, List<string>? disciplines, List<string>? depts, string? iin, int p = 1)
     {
         StatusFilter = status ?? "";
         DisciplineFilters = disciplines ?? [];
         DeptFilters = depts ?? [];
+        IINSearch = iin?.Trim() ?? "";
         CurrentPage = Math.Max(1, p);
 
         AllDisciplines = await _apps.GetAllDisciplinesAsync();
@@ -33,7 +36,7 @@ public class DashboardModel : Pages.ORSpecialistPageModel
         ExpulsionConflictCount = await _apps.GetExpulsionConflictCountAsync();
 
         var (items, total) = await _apps.GetApplicationsPagedAsync(
-            StatusFilter, DisciplineFilters.ToArray(), CurrentPage, PageSize);
+            StatusFilter, DisciplineFilters.ToArray(), CurrentPage, PageSize, IINSearch);
 
         Applications = items;
         TotalCount = total;

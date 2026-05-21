@@ -286,7 +286,7 @@ public class ApplicationService
     }
 
     public async Task<(List<Application> Items, int Total)> GetApplicationsPagedAsync(
-        string status, string[] disciplines, int page, int pageSize)
+        string status, string[] disciplines, int page, int pageSize, string iin = "")
     {
         using var conn = _db.Supabase();
         var conditions = new List<string>();
@@ -296,6 +296,11 @@ public class ApplicationService
         {
             conditions.Add("a.status = @status");
             p.Add("status", status);
+        }
+        if (!string.IsNullOrEmpty(iin))
+        {
+            conditions.Add("a.iin LIKE @iin");
+            p.Add("iin", $"%{iin}%");
         }
         if (disciplines.Length > 0)
         {
